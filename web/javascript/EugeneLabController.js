@@ -189,7 +189,7 @@ $(document).ready(function() {
     //draw the file table tree based on users file contents
     var loadFileTree = function() {
         $("#filesArea").html("");
-        $.get("EugeneLabServlet", {"command": "getFileTree"}, function(data) {
+        $.get("EugeneLabServlet", {"command": "getFileList"}, function(data) {
             var children = data;
             $("#filesArea").dynatree({
                 onActivate: function(node) {
@@ -214,6 +214,13 @@ $(document).ready(function() {
     // Return the active node's file extension
     var getActiveNodeExtension = function() {
         var node = getActiveNode();
+        
+        // no node selected... 
+        // use root ...
+        if(node === null) {
+        	return "/";
+        }
+        
         var nodeName = node.data.title;
         var parent = node.getParent();
         while (parent.data.title !== null) {
@@ -229,7 +236,7 @@ $(document).ready(function() {
     var addNewFolder = function(newFolderName) {
         var activeFolder = getActiveNodeExtension();
         var newFolderExtension = activeFolder + newFolderName + "/";
-        var command = {"command": "addNewFolder", "extension": newFolderExtension};
+        var command = {"command": "createFolder", "extension": newFolderExtension};
         $.post("EugeneLabServlet", command, function(response) {
             var isSuccessful = response["isSuccessful"];
             alert(JSON.stringify(response));
@@ -291,7 +298,7 @@ $(document).ready(function() {
                 fileName = parent.data.title + "/" + fileName;
                 parent = parent.getParent();
             }
-            $.get("EugeneLabServlet", {"command": "getFileContent", "fileName": fileName}, function(response) {
+            $.get("EugeneLabServlet", {"command": "loadFile", "fileName": fileName}, function(response) {
                 editor.setValue(response);
             });
         }
@@ -315,16 +322,49 @@ $(document).ready(function() {
         }
     });
 
-    $('#createNewButton').click(function() {
-        var input = $('#newFileNameInput').val();
-        var newFileName = $('#newFileNameInput').val() + ".eug";
-        if (input === "") {
+    $('#uploadFileButton').click(function() {
+        var newFileName = $('#file').val();
+        if (newFileName !== "") {
             $('#uploadForm').submit();
         } else if ($('a.dynatree-title:contains("' + newFileName + '")').length === 0) {
             editor.setValue("");
             saveFile(newFileName);
         }
     });
+    
+    
+    $('#createNewFileButton').click(function() {
+        var filename = $('#newFileNameInput').val();
+        if (filename !== "") {
+        	
+        	var folder = "";
+            var node = getActiveNode();
+            alert(node);
+            if(node !== null) {
+            	if(node.hasChildren() === true) {
+            		folder = node;
+            	} else {
+            		folder = node.getParent();
+            	}
+            }
+            
+            var command = {"command": "createFile", "filename":filename, "folder": folder};
+            $.post("EugeneLabServlet", command, function(response) {
+            	if(response["exception"] !== null) {
+            		alert(response["exception"]);
+            	} else {
+            		// if everything went fine, 
+            		// add the file name to the file tree
+            		//activeFolder.addChild({title: newFileName});
+            	}
+            });
+        } else if ($('a.dynatree-title:contains("' + filename + '")').length === 0) {
+            editor.setValue("");
+            saveFile(filename);
+        }
+    });
+    
+    
     $('#saveButton').click(function() {
         var newFileName = $('#fileName').text();
         if ($('a.dynatree-title:contains("' + newFileName + '")').length === 0) {
@@ -336,13 +376,29 @@ $(document).ready(function() {
 
     $('#deleteModalButton').click(function() {
         var node = $("#filesArea").dynatree("getActiveNode");
-        if (node.data.isFolder) {
-            //do nothing i guess...
-        } else {
+        if(node !== null) {
             var fileName = node.data.title;
             $('#toDeleteName').html("Do you really want to delete <strong>" + fileName + "</strong>?");
-
         }
+    });
+
+    
+    $('#yesDeleteFileButton').click(function() {
+        
+        var activeFolder = getActiveNodeExtension();
+    	var node = $("#filesArea").dynatree("getActiveNode");
+        
+        var command = {"command": "deleteFile", "filename":node, "folder": activeFolder};
+        $.post("EugeneLabServlet", command, function(response) {
+        	if(response["exception"] !== null) {
+        		alert(response["exception"]);
+        	} else {
+        		// if everything went fine, 
+        		// then remove the active node from the file tree
+        		node.remove();
+        	}
+        });
+        
     });
 
     $('#loadButton').click(function() {
@@ -450,8 +506,9 @@ $(document).ready(function() {
             });
             devices = devices.substring(0, devices.length - 1);
             command["devices"] = devices;
+            
             alert(command["devices"]);
-            window.location.replace("http://cidar.bu.edu/ravencad/ravencad.html");
+            //window.location.replace("http://cidar.bu.edu/ravencad/ravencad.html");
             $.get("EugeneLabServlet", command, function(response) {
                 alert(response);
             });

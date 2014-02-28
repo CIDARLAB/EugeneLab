@@ -70,48 +70,64 @@
             <br/>
               <div class="row-fluid">
                   <div class="btn-group btn-group-vertical">
-                      <button id="loadButton" class="btn btn-primary" style="width:126px">Open File</button>
-                      <a href="#newFileModal" role="button" class="btn btn-success" data-toggle="modal" style="width:100px">Upload File</a>
-                      <a href="#deleteFileModal" id="deleteModalButton" class="btn btn-danger" style="width:100px" role="button" data-toggle="modal">Delete File</a> 
+                      <button id="loadButton" class="btn btn-default" style="width:126px">Open File</button>
+                      <a href="#newFileModal" class="btn btn-default" data-toggle="modal" style="width:100px">New File</a>
+                      <a href="#uploadFileModal" class="btn btn-default" data-toggle="modal" style="width:100px">Upload File</a>
+                      <a href="#deleteFileModal" id="deleteModalButton" class="btn btn-default" style="width:100px" data-toggle="modal">Delete File</a> 
                   </div>
               </div>
-              <div id="newFileModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="newFileModalLabel" aria-hidden="true">
+              
+              <!-- FILE UPLOAD MODAL -->
+              <div id="uploadFileModal" class="modal hide fade" tabindex="-1">
                   <div class="modal-header">
-                      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                      <h4 id="newFileModalLabel">Upload File</h4>
+                      <button type="button" class="close" data-dismiss="modal"></button>
+                      <h4 id="uploadFileModalLabel">Upload File</h4>
                   </div>
                   <div class="modal-body">
-                      <p>You can either upload an existing file.</p>
-                      <form id="uploadForm" method="POST" action="EugeneServlet" enctype="multipart/form-data">
+                      <form id="uploadForm" method="POST" action="EugeneLabServlet" enctype="multipart/form-data">
                           <input type="file" name="file" id="file" multiple/>
-                          <input type="submit" value="Upload File" name="upload" id="uploadFileButton" class="btn" style="width:150px" />
+                          <!--   <input type="submit" value="Upload File" name="upload" id="uploadFileButton" class="btn" style="width:150px" /> -->
                       </form>
-                      <p>Or....</p>
-                      <p>Create a new file</p>
-                      <input id="newFileNameInput" placeholder="New File Name"/>
-                      <br>
-                      <input type="radio" name="file-type" value="eug" checked> Eugene File
-                      <br>
-                      <input type="radio" name="file-type" value="sbol"> SBOL File
                   </div>
                   <div class="modal-footer">
-                      <button id="createNewButton" class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Create New File</button>
-                      <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+                      <button id="uploadFileButton" class="btn btn-primary" data-dismiss="modal">Upload File</button>
+                      <button class="btn" data-dismiss="modal">Cancel</button>
                   </div>
               </div>
-              <div id="deleteFileModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="deleteFileModalLabel" aria-hidden="true">
+              
+              <!-- NEW FILE MODAL -->
+              <div id="newFileModal" class="modal hide fade" tabindex="-1">
                   <div class="modal-header">
-                      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                      <h4 id="deleteFileModalLabel">Delete File</h4>
+                      <button type="button" class="close" data-dismiss="modal"></button>
+                      <h4 id="newFileModalLabel">New File</h4>
+                  </div>
+                  <div class="modal-body">
+                      <form id="uploadForm" method="POST" action="EugeneLabServlet">
+	                      <input id="newFileNameInput" placeholder="New File Name"/><br/>
+                      </form>
+                  </div>
+                  <div class="modal-footer">
+                      <button id="createNewFileButton" class="btn btn-primary" data-dismiss="modal">Create New File</button>
+                      <button class="btn" data-dismiss="modal">Cancel</button>
+                  </div>
+              </div>
+              
+              <!-- DELETE FILE MODAL -->
+              <div id="deleteFileModal" class="modal hide fade" tabindex="-1">
+                  <div class="modal-header">
+                      <button type="button" class="close" data-dismiss="modal">×</button>
+                      <h4 id="deleteFileModalLabel">Are you sure?</h4>
                   </div>
                   <div class="modal-body">                                      
                       <p id="toDeleteName"></p>
                   </div>
                   <div class="modal-footer">
-                      <button id="deleteButton" class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Delete File</button>
-                      <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+                      <button id="yesDeleteFileButton" class="btn btn-success" data-dismiss="modal">Yes</button>
+                      <button id="noButton" class="btn btn-danger" data-dismiss="modal">No</button>
                   </div>
               </div>
+              
+              
             </div>
         </div>
     </div>

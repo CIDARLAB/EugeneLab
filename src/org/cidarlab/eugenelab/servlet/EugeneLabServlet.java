@@ -3,53 +3,52 @@ package org.cidarlab.eugenelab.servlet;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Random;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
  *
- * @author Admin
+ * @author Ernst Oberortner
  */
-public class EugeneLabServlet extends HttpServlet {
+public class EugeneLabServlet 
+		extends HttpServlet {
 
-    @Override
+	private static final long serialVersionUID = -5373818164273289666L;
+
+	
+	private DiskFileItemFactory factory;
+
+	@Override
     public void init()
             throws ServletException {
 
         super.init();
 
+        this.factory = null;
+        
         //this.clotho = ClothoFactory.getAPI("ws://localhost:8080/websocket");
     }
 
@@ -84,19 +83,20 @@ public class EugeneLabServlet extends HttpServlet {
             throws ServletException, IOException {
 
     	System.out.println("[EugeneLabServlet.processGet] -> "+request.getParameter("command"));
+    	
         //I'm returning a JSON object and not a string
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
         String command = request.getParameter("command");
 
         try {
-            if (command.equals("getFileTree")) {
+            if ("getFileList".equalsIgnoreCase(command)) {
             	// OK
                 out.write(this.getFiles());
 
-            } else if (command.equals("read")) {
+            } else if (command.equalsIgnoreCase("read")) {
 
-            } else if (command.equals("getFileContent")) {
+            } else if ("loadFile".equalsIgnoreCase(command)) {
                 response.setContentType("text/html;charset=UTF-8");
                 String fileName = request.getParameter("fileName");
                 String toReturn = loadFile(fileName);
@@ -128,8 +128,6 @@ public class EugeneLabServlet extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        System.out.println("[EugeneLabServlet.doPost] -> "+request.getParameter("command"));
-    	
     	processPostRequest(request, response);
     }
 
@@ -147,45 +145,88 @@ public class EugeneLabServlet extends HttpServlet {
     protected void processPostRequest(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
-        if (ServletFileUpload.isMultipartContent(request)) {
-        	/*
-        	 * FILE UPLOAD
-        	 */
-            try {
-                ServletFileUpload uploadHandler = new ServletFileUpload(new DiskFileItemFactory());
-                PrintWriter writer = response.getWriter();
-                response.setContentType("application/json");
-                response.sendRedirect("eugenelab.html");
+    	JSONObject jsonResponse = new JSONObject();
+    	
+    	try {
+    		
+    		if (ServletFileUpload.isMultipartContent(request)) {
+
+	        	/*
+	        	 * FILE UPLOAD
+	        	 */
+            	if(null == this.factory) {
+            		this.factory = new DiskFileItemFactory();
+            		ServletContext servletContext = this.getServletConfig().getServletContext();
+            		File repository = (File) servletContext.getAttribute("javax.servlet.context.tempdir");
+            		factory.setRepository(repository);
+            	}
+            	
+            	ServletFileUpload uploadHandler = new ServletFileUpload(this.factory);
+                
+            	/*
+            	 * check if the user's directory exists already
+            	 */
+            	String uploadFilePath = Paths.get(this.getServletContext().getRealPath(""), "data", getCurrentUser()).toString();
+                File userDir = new File(uploadFilePath);
+                if(!userDir.exists()) {
+                	userDir.mkdirs();
+                }
+                
+                /*
+                 * store the file in the user's directory
+                 */
                 List<FileItem> items = uploadHandler.parseRequest(request);
-                //String uploadFilePath = this.getServletContext().getRealPath("/") + "/data/" + getCurrentUser() + "/";
-                String uploadFilePath = Paths.get(this.getServletContext().getRealPath(""), "data", getCurrentUser()).toString();
-                new File(uploadFilePath).mkdir();
-                ArrayList<File> toLoad = new ArrayList();
+                List<File> toLoad = new ArrayList<File>();
                 for (FileItem item : items) {
                     File file;
                     if (!item.isFormField()) {
                         String fileName = item.getName();
+                        
                         if (fileName.equals("")) {
                             System.out.println("You forgot to choose a file.");
                         }
+
                         if (fileName.lastIndexOf("\\") >= 0) {
-                            file = new File(uploadFilePath + fileName.substring(fileName.lastIndexOf("\\")));
+                            file = new File(uploadFilePath + "/" + fileName.substring(fileName.lastIndexOf("\\")));
                         } else {
-                            file = new File(uploadFilePath + fileName.substring(fileName.lastIndexOf("\\") + 1));
+                            file = new File(uploadFilePath + "/" + fileName.substring(fileName.lastIndexOf("\\") + 1));
                         }
+                        
                         item.write(file);
                         toLoad.add(file);
                     }
                 }
-                writer.write("{\"result\":\"good\",\"status\":\"good\"}");
-            } catch (FileUploadException ex) {
-                Logger.getLogger(EugeneLabServlet.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (Exception ex) {
-                Logger.getLogger(EugeneLabServlet.class.getName()).log(Level.SEVERE, null, ex);
-            }
+                
+                jsonResponse.put("status", "good");
+	        } else {
+	        	/*
+	        	 * read the command of the request
+	        	 */
+	        	String command = request.getParameter("command");
+	        	if("createFile".equalsIgnoreCase(command)) {
+	        		this.createFile(request.getParameter("folder"), request.getParameter("filename"));
+	        	} else if("deleteFile".equalsIgnoreCase(command)) {
+	        		this.deleteFile(request.getParameter("folder"), request.getParameter("filename"));
+	        	}
 
-        } else {
-        }
+	        	
+	        	System.out.println("[doPost] -> "+command);
+	        }
+    	} catch(Exception e) {
+    		jsonResponse.put("status", "exception");
+    		jsonResponse.put("reason", e.toString());
+    	}
+
+        /*
+         * RESPONSE
+         */
+        PrintWriter writer = response.getWriter();
+        response.setContentType("application/json");
+        response.sendRedirect("eugenelab.html");
+        writer.write(jsonResponse.toString());
+        writer.flush();
+        writer.close();
+
     }
 
     private String getCurrentUser() {
@@ -198,12 +239,11 @@ public class EugeneLabServlet extends HttpServlet {
     private String getFiles() {
         //String currentFolderExtension = this.getServletContext().getRealPath("/") + "/data/" + getCurrentUser() + "/";
         String currentFolderExtension = Paths.get(this.getServletContext().getRealPath(""), "data", getCurrentUser()).toString();
-        System.out.println("[EugeneServlet.getFileTree] -> " + currentFolderExtension);
 
         File rootFolder = new File(currentFolderExtension);
-        ArrayList<File> queue = new ArrayList();
-        ArrayList<JSONArray> folders = new ArrayList();
-        ArrayList<Integer> folderSizes = new ArrayList();
+        List<File> queue = new ArrayList<File>();
+        List<JSONArray> folders = new ArrayList<JSONArray>();
+        List<Integer> folderSizes = new ArrayList<Integer>();
         File[] rootFiles = rootFolder.listFiles();
         if (null == rootFiles) {
             return "";
@@ -269,7 +309,7 @@ public class EugeneLabServlet extends HttpServlet {
             String toReturn = "";
             String line = br.readLine();
             while (line != null) {
-                toReturn = toReturn + "\n" + line;
+                toReturn = toReturn + "\n\r" + line;
                 line = br.readLine();
             }
             br.close();
@@ -278,6 +318,44 @@ public class EugeneLabServlet extends HttpServlet {
             ex.printStackTrace();
             return "the bads";
         }
+    }
+    
+    /**
+     * 
+     * @param folder
+     * @param filename
+     * @throws IOException
+     */
+    private void createFile(String folder, String filename) 
+    		throws IOException {
+    	
+    	Files.createFile(
+    			Paths.get(
+    					this.getServletContext().getRealPath(""), 
+    					"data", 
+    					getCurrentUser(), 
+    					folder, 
+    					filename));
+    	
+    }
+
+    /**
+     * 
+     * @param folder
+     * @param filename
+     * @throws IOException
+     */
+    private void deleteFile(String folder, String filename) 
+    		throws IOException {
+    	
+    	Files.deleteIfExists(
+    			Paths.get(
+    					this.getServletContext().getRealPath(""), 
+    					"data", 
+    					getCurrentUser(), 
+    					folder, 
+    					filename));
+    	
     }
 
     private void saveFile(String fileName, String fileContent) throws IOException {

@@ -91,7 +91,7 @@ public class EugeneLabServlet extends HttpServlet {
 
         try {
             if (command.equals("getFileTree")) {
-            	
+            	// OK
                 out.write(this.getFiles());
 
             } else if (command.equals("read")) {

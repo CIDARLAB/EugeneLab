@@ -1,0 +1,18 @@
+
+Property name(txt);
+Property sequence(txt);
+Property represses(txt);
+Property repressedBy(txt);
+
+PartType Gene(name, sequence, represses);
+PartType Reporter(name, sequence, repressedBy);
+
+Gene LambdaCI(.name("Lambda cI"), .sequence("atctacttac"), .represses("LacI"));
+Gene LacI(.name("LacI"), .sequence("cagtccgttacttag"), .represses("TetR"));
+Gene TetR(.name("TetR"), .sequence("ctcacctcttaggac"), .represses("LambdaCI"));
+Gene GFP(.name("GFP"), .sequence("actactacgtactacctag"));
+
+Repressilator = Gene + Gene + Gene + Gene;
+
+
+

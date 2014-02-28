@@ -1,0 +1,43 @@
+.fileExplorerList {
+    list-style-type: none;
+}
+
+.firstFileExplorerElement{
+    -webkit-border-top-left-radius: 5px;
+    -webkit-border-top-right-radius: 5px;
+    -moz-border-radius-topleft: 5px;
+    -moz-border-radius-topright: 5px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.lastFileExplorerElement{
+    border-bottom: 2px solid #000;
+    -webkit-border-bottom-right-radius: 5px;
+    -webkit-border-bottom-left-radius: 5px;
+    -moz-border-radius-bottomright: 5px;
+    -moz-border-radius-bottomleft: 5px;
+    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
+
+.fileExplorerElement{
+    display: block;
+    border-top: 2px solid #000;
+    border-left: 2px solid #000;
+    border-right: 2px solid #000;
+    padding: 12.5px 20px;
+}
+
+.fileExplorerElement:hover{
+    background-color: #149bdf;
+    cursor: pointer;
+}
+/* File Delete needs more work
+.popupDelete {
+    z-index:1000;
+    position: absolute;
+    background-color:#C0C0C0;
+    border: 1px solid black;
+    padding: 2px;
+}*/

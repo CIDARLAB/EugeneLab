@@ -1,0 +1,65 @@
+Property name(txt);
+Property direction(txt);
+Property represses(txt);
+Property inducedBy(txt);
+Property sequence(txt);
+
+Part Promoter(name, direction, inducedBy);
+Part Repressor(name, represses);
+Part Reporter(name, sequence);
+
+
+/** PARTS **/
+// Promoters 
+Promoter promoter1(.name("promoter1"), .direction("backward"), .inducedBy("repressor1"));
+Promoter promoter2(.name("promoter2"), .direction("forward"), .inducedBy("repressor2"));
+
+// Repressors
+Repressor repressor1(.name("repressor1"), .represses("promoter1"));
+Repressor repressor2(.name("repressor2"), .represses("promoter2"));
+
+// Reporters
+Reporter GFP(.name("gfp"), .sequence("ATATATATATATATATATAT"));
+
+// assemble the part types into a toggle-switch device
+ToggleSwitch = Repressor + Promoter + Promoter + Repressor + Reporter;
+
+// define some rules
+Rule r1(ToggleSwitch[1].direction == "backward");
+Rule r2(ToggleSwitch[2].direction == "forward");
+
+// Repressor2 represses Promoter2
+Rule r3(ToggleSwitch[0].represses == ToggleSwitch[2].name);
+
+// Repressor1 represses Promoter1
+Rule r4(ToggleSwitch[3].represses == ToggleSwitch[1].name);
+
+
+// produce all possible toggle-switches
+lst = product(ToggleSwitch, strict);
+for(num i=0; i<lst.size(); i++) {
+	println(lst[i]);
+}
+
+/** FUTURE:
+
+1. Regulatory Interactions:
+ 
+// specification
+
+// device level
+
+// PartType level
+Repressor represses Promoter
+
+// part level
+repressor1 represses promoter1
+
+// rules
+Rule R(ToggleSwitch[0] represses ToggleSwitch[2]);
+
+**/
+
+
+
+

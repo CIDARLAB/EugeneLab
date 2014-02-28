@@ -1,0 +1,118 @@
+Property Name(txt);
+Property Pigeon(txt);
+
+PartType PromoterInternal(Name, Pigeon);
+PartType TerminatorInternal(Name, Pigeon);
+PartType Promoter(Name, Pigeon);
+PartType Terminator(Name, Pigeon);
+PartType Gene(Name, Pigeon);
+
+// PARTS library begin
+// Put your parts here
+
+PromoterInternal iP0("iP0", "s P0 13");
+TerminatorInternal iT0("iT0", "s T0 13");
+PromoterInternal iP1("iP1", "s P1 1");
+PromoterInternal iP2("iP2", "s P2 3");
+PromoterInternal iP3("iP3", "s P3 5");
+TerminatorInternal iT1("iT1", "s T1 7");
+TerminatorInternal iT3("iT3", "s T3 9");
+
+Promoter P1("P1", "p P1 1");
+Promoter P2("P2", "p P2 3");
+Promoter P3("P3", "p P3 5");
+Terminator T1("T1", "t T1 7");
+Terminator T3("T3", "t T3 9");
+
+Gene U1("U1", "c U1 1");
+Gene U2("U2", "c U2 2");
+Gene S1("S1", "c S1 3");
+Gene S2("S2", "c S2 4");
+Gene V1("V1", "c V1 5");
+Gene V2("V2", "c V2 6");
+Gene W1("W1", "c W1 7");
+Gene W2("W2", "c W2 8");
+Gene Z1("Z1", "c Z1 9");
+Gene Z2("Z2", "c Z2 10");
+Gene M1("M1", "c M1 11");
+Gene M2("M2", "c M2 12");
+
+// PARTS library end 
+// Device Declarations
+
+Device One_Gene_Operon (
+    Promoter, 
+    Gene, 
+    Terminator
+);
+
+Device Two_Gene_Operon (
+    Promoter,
+    Gene, 
+    TerminatorInternal,
+    PromoterInternal,
+    Gene,
+    Terminator
+);
+
+// GLOBAL VARIABLES
+Device[] lst = [One_Gene_Operon, Two_Gene_Operon];
+Device[] finalLst;
+num MAX_DEVICE_SIZE = 6;
+
+
+/*
+ * function: buildDevicesRecursively
+ *
+ * builds all possible combinations recursively
+ * (of a maximal size MAX_DEVICE_SIZE) that contain 3 genes
+ *  
+ */
+function buildDevicesRecursively(Device d, num k) {
+  if(k <= MAX_DEVICE_SIZE) {
+    for(num i=0; i<lst.size; i++) {
+      d.add(lst[i]);
+
+      // check if the current device has 5 genes
+      Rule r(ON d: Gene EXACTLY 5);            
+      if(r) {
+        createValidDevices(d);
+      }
+      buildDevicesRecursively(d, k+1);
+      d.remove(d.size()-1);
+    }
+  }    
+}
+
+/* 
+ * function: createValidDevices
+ * defines rules and call Eugene product() function 
+ */
+function createValidDevices(Device dev) {
+
+  // define design-specific rules  
+  Rule rDev (ON dev:
+    CONTAINS U1 AND CONTAINS S1 AND NOT CONTAINS U2 AND NOT CONTAINS S2 
+      AND
+    U1 BEFORE S1
+      AND
+    P1 NEXTTO U1 AND T1 NEXTTO U1
+      AND 
+    P2 NEXTTO S1 AND T3 NEXTTO S1
+      AND    
+    STARTSWITH P1 
+        AND
+    U1 NOTMORETHAN 1
+  );
+
+  // invoke product() function
+  Device[] validDevices = product(dev, 1);
+
+  // add all valid devices to the global list
+  finalLst.add(validDevices);
+}
+
+Device d;
+// invoke the the buildDevicesRecursively function
+buildDevicesRecursively(d, 0);
+save(finalLst);

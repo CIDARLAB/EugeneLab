@@ -1,0 +1,77 @@
+//MoClo Library
+//TL 6.4.13
+//designs for all 1540 possible part this summer
+
+
+//Properties
+Property Name(txt);
+Property Sequence(txt);
+Property Strength(txt);
+
+//PartTypes
+PartType Promoter(Name, Sequence);
+PartType RBS(Name,Sequence,Strength);
+PartType Reporter(Name, Sequence);
+PartType Terminator(Name, Sequence);
+
+
+Promoter J23100(.Name("J23100_AE"));
+Promoter J23101(.Name("J23101_AE"));
+Promoter J23102(.Name("J23102_AE"));
+
+//promoters
+// FEATURE REQUEST- TL 6.15.2013 DYNAMIC NAMING
+for (num i=0; i< 10; i++) {   
+    Promoter ** "J2310"+i+"_AE" ** (.Name("J2310"+i+"_AE"));
+}
+
+for (num j; j<10; j++) {
+    Promoter ** "J2311"+j+"_AE" ** (.Name("J2311"+j+"_AE"));       
+}
+
+//RBS's
+RBS B0030(.Name("B0030"), .Strength("strong"));
+RBS B0031(.Name("B0031"), .Strength("weak"));
+RBS B0032(.Name("B0032"), .Strength("medium"));
+RBS B0033(.Name("B0033"), .Strength("weak"));
+RBS B0034(.Name("B0034"), .Strength("strong"));
+
+RBS BCD1_BC(.Name("BCD1_BC"));
+RBS BCD8_BC(.Name("BCD8_BC"));
+RBS BCD12_BC(.Name("BCD12_BC"));
+RBS BCD13_BC(.Name("BCD13_BC"));
+RBS BCD16_BC(.Name("BCD16_BC"));
+
+//Reporters
+Reporter GFP_CD(.Name("GFP_CD"));
+Reporter RFP_CD(.Name("RFP_CD"));
+Reporter YFP_CD(.Name("YFP_CD"));
+Reporter mCitrine_CD(.Name("mCitrine_CD"));
+Reporter mOrange_CD(.Name("mOrange_CD"));
+Reporter CyPet_CD(.Name("CyPet_CD"));
+Reporter DsRed_CD(.Name("DsRed_CD"));
+
+//Terminator
+Terminator B0015_DE(.Name("B0015_DE"));
+
+Device MoCloLv1(Promoter, RBS, Reporter, Terminator);
+
+Rule strongOnly(
+	ON MoCloLv1:
+		MoCloLv1[1].Strength =="strong");
+
+//print (MoCloLv1);
+Device[] listProduct=product(MoCloLv1,strict);
+println (listProduct.size()+" MoCloLv1 devices were generated!");
+
+/**
+// print the produced devices
+for(num i=0; i<listProduct.size(); i++) {
+	println (listProduct[i]);
+}
+**/
+
+save(listProduct);
+
+
+

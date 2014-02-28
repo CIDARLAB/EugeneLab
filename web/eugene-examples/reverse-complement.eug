@@ -1,0 +1,46 @@
+Property Sequence(txt);
+
+PartType Promoter(Sequence);
+
+// define some promoters
+Promoter p1(.Sequence("ATCG"));
+Promoter p2(.Sequence("GGGGGGGGG"));
+Promoter p3(.Sequence("CCCCCCCCC"));
+Promoter p4(.Sequence("TTTTTTTTT"));
+Promoter p5(.Sequence("AAAAAAAAA"));
+
+function txt reverseComplement(Part p) {
+    txt s1 = p.get(0);
+	//txt s1 = p.Sequence;
+	//txt s1 = p.get("Sequence");
+	    
+	txt revComp;
+    for(num i=s1.size()-1; i>=0; i--) {    
+        if(s1[i] == "A") {
+            revComp = revComp + "T";
+        } else if(s1[i] == "T") {
+            revComp = revComp + "A";
+        } else if(s1[i] == "C") {
+            revComp = revComp + "G";
+        } else if(s1[i] == "G") {
+            revComp = revComp + "C";
+        }
+    }  
+    
+    return revComp;
+}
+
+txt revComp = reverseComplement(p1);
+println("The reverse complement of ", p1.Sequence, " is ", revComp);
+
+revComp = reverseComplement(p2);
+println("The reverse complement of ", p2.Sequence, " is ", revComp);
+
+revComp = reverseComplement(p3);
+println("The reverse complement of ", p3.Sequence, " is ", revComp);
+
+revComp = reverseComplement(p4);
+println("The reverse complement of ", p4.Sequence, " is ", revComp);
+
+revComp = reverseComplement(p5);
+println("The reverse complement of ", p5.Sequence, " is ", revComp);

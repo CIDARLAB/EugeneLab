@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>EugeneLab</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="shortcut icon" href="images/icon.ico?v2">
+        <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+        <link href="css/bootstrap-responsive.min.css" rel="stylesheet" media="screen">
+        <style></style>
+    </head>
+    <body data-spy="scroll" data-target="#sidebar">
+        <div class="navbar navbar-fixed-top">
+            <div class="navbar-inner"> <a class="brand" href="index.html">EugeneLab</a>
+                <ul class="nav">
+                    <li><a href="eugenelab.html">Design</a></li>
+                    <li><a href="documentation.html">How-To</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+                <div id="loginArea"><form id="loginForm" class="navbar-form pull-right" action="AuthenticationServlet" method="POST">
+                        <input name="user" type="text" class="span2" placeholder="Login">
+                        <input name="password" type="password" class="span2" placeholder="Password">
+                        <input type="submit" value="Login" class="btn"/>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="page-header" style="margin-top:50px">
+            <h1>EugeneLab <small>Log in and get started today.</small></h1>
+        </div>
+        <div class="container">
+            <div class="row-fluid">
+                <div class="span2">
+                    <div id="sidebar">
+                        <ul  class=" well nav nav-list affix">
+                            <li class="active"><a href="#signIn">Sign In</a></li>
+                            <li><a href="#signUp">Sign Up</a></li>
+                            <li><a href="#recover">Recover Account</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="span10">
+                    <div id="signIn" class="well">
+                        <h3>Sign In</h3>
+                        <hr/>
+                        <div class="row-fluid">
+                            <div class="span6">
+                                <form style="width:50%" id="loginFormMain" action="AuthenticationServlet" method="POST">
+                                    <input type="text" name="user" class="input-block-level" placeholder="User Name">
+                                    <input type="password" name="password" class="input-block-level" placeholder="Password">
+                                    <label class="checkbox">
+                                        <input type="checkbox" value="remember-me">Remember this username</label>
+                                    <button class="btn btn-large btn-primary" type="submit">Sign in</button>
+                                </form>
+                            </div>
+                            <div class="span4">
+                                <p>Don't have an account?</p>
+                                <a href="#signUp"><small>Sign up now!</small></a> 
+                                <p>Forgot your password?</p>
+                                <a href="#recover"><small>Recover it here</small></a>                            
+                            </div>
+                        </div>
+                    </div>
+                    <div id="signUp" class="well">
+                        <h3>Sign Up</h3>
+                        <hr/>
+                        <p>
+                            EugeneLab is currently in closed beta testing. Account registration is not open to the public at this point.
+                            <!--We are currently looking for beta testers in both academia and industry.
+                            Please contact the EugeneLab development team at 
+                            <a href="mailto:ravencadhelp@gmail.com">ravencadhelp@gmail.com</a> to request a login.
+                            In your email, please specify the following:</p>
+                        <ul>
+                            <li>Your name and your affiliation with a research insitution or corporate entity.</li>
+                            <li>Your contact information (so that we can set up a conversation with you regarding how we can make EugeneLab be an ideal solution for you</li>
+                            <li>A brief description of how you would like to use EugeneLab</li>
+                        </ul> 
+                        Thanks,
+                        <br/>
+                        <cite><small>EugeneLab Dev Team</small></cite>
+
+                    </div>
+                    <div id="recover" class="well">
+                        <h3>Recover Account</h3>
+                        <hr/>
+                        <p>Please send a email to <a href="mailto:ravencadhelp@gmail.com">ravencadhelp@gmail.com</a> to request your account information.
+                            We will send you your information within one business day. An automated system is coming soon.
+                        </p>
+                        Thanks,
+                        <br/>
+                        <cite><small>EugeneLab Dev Team</small></cite>
+                    </div> -->
+                </div>
+            </div>
+        </div>
+        <!--scripts placed at the end to enhance page loading speed--> 
+        <script type="text/javascript" src="jsLibraries/jquery-1.9.1.min.js"></script> 
+        <script src="jsLibraries/bootstrap.min.js"></script>
+        <footer>
+            <div class="container" align="center">
+                <p>Designed and built by <a href="contact.html">Jenhan Tao</a>, <a href="contact.html">Ernst Oberortner</a> and <a href="contact.html">Erik Lindgren</a></p>
+                <p>Code licensed under <a href="license.html">LICENSE</a></p>
+            </div>
+        </footer>
+    </body>
+</html>

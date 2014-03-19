@@ -1,0 +1,24 @@
+                        
+                        <div id = "combin_func">
+                            <h4>Combinatorial Functions</h4>
+                            <hr/>
+                            <p>To automatically generate synthetic biological devices that comply with a given set of rules, two built-in functions have been added to Eugene – <strong>permute</strong> and <strong>product</strong>.</p>
+                            <p>Both functions return a list of generated devices. Both functions can take up to three arguments: a device, if the device generation process should include the existing rules or not, and a number of desired variations. Only the first argument – the input device – is required, whereas the second and third arguments are optional. For the second parameter, which specifies the level of rule enforcement, two options can be specified: strict or flexible. The strict option only generates devices that obey the specified rules, while the flexible option, which is default, generates every possible device and just labels devices that violate the rules. The third parameter is a non-negative integer number and limits the number of variations generated. If product or permute is called with a number smaller than the total number of possible variations, it will generate a random subset of the that size. If the number of possible variations is greater than 1000, an error will be thrown, and the user will be called to reduce the number of possible variations through the application of rules to the generated devices.</p>
+                            <hr/>
+                            <center><strong>product()</strong></center>
+                            <p>The product() function generates all possible devices from the information stored in the design space that comply with the specified rules and order. Given a device composed of n components, and a design space with m elements of the device's components, the product() function generate m^n variations of that device. Rules can be used to prune the set of generated devices.</p>
+                            <table class ="table-bordered">
+                                <p>// generate 5 possible rule compliant device instances of the abstractDevice product(abstractDevice, strict, 5);
+                                <br>// generate all devices that adhere to the hybridDevice's structure product(hybridDevice);</p>
+                            </table>
+                            <hr/>
+                            <center><strong>permute()</strong></center>
+                            <p>The permute function automates the specification of many devices that share the same structure. It generates a device for every permutation of the parts in the design space. Hence, given a device composed of n parts, the permute function will generate n! permutations of the parts. If a component of the given device is a device, even ones with only one part, it is not changed and appears in every variation.</p>
+                                 <table class ="table-bordered">
+                                <p>// generate all permutations of the abstractDevice that satisfy all defined rules;
+                                <br>permute(abstractDevice, strict); </p>
+                                <p>// generate all permutations of the hybridDevice and label the devices which do not satisfy the rules;
+                                <br>permute(hybridDevice, flexible);</p>
+                            </table>
+                            <hr/>
+                        </div>

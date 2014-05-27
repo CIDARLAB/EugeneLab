@@ -484,6 +484,7 @@ $(document).ready(function() {
         }
 
         if (!text) {
+        	/***  FOR GRAPHICAL EDITOR --- Spectacles Web-Version
             var command = {};
             command["command"] = "run";
             command["devices"] = "";
@@ -512,28 +513,29 @@ $(document).ready(function() {
             $.get("EugeneLabServlet", command, function(response) {
                 alert(response);
             });
+            ***/
         } else {
             //Clicking run button sends current text to server
             //May want to modify to send file or collection of files to server(if Eugene program spans multiple files)
-            var input = editor.getValue();
             $('#runButton').attr("disabled", "disabled");
-            var command;
+            var command = {"script": editor.getValue(), "command": "execute"};
+            
+            /*** WE ONLY SUPPORT EUGENE SCRIPTS 
             // Get file type to determine command
             var fileType = getFileType();
             var fileExtension = getCurrentFileExtension();
-
             // Command is based on the file type
-            /*if (fileType === 'eug') {
-             command = {"input": editor.getValue(), "command": "execute"};
-             } else*/
-            if (fileType === 'sbol') {
+            if (fileType === 'eug') {
+            	command = {"input": editor.getValue(), "command": "execute"};
+            } else if (fileType === 'sbol') {
                 command = {"input": fileExtension, "command": "executeSBOL"};
             } else if (fileType === 'gbk' || fileType === 'gb') {
                 command = {"input": fileExtension, "command": "executeGenBank"};
             } else {
                 command = {"input": editor.getValue(), "command": "execute"};
             }
-
+			***/
+            
             $.post("EugeneLabServlet", command, function(response) {
                 $('#runButton').removeAttr("disabled");
                 //alert(response["status"]);

@@ -3,6 +3,7 @@
 	<name>EugeneLab</name>
 	<comment></comment>
 	<projects>
+		<project>sparrow</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
@@ -22,6 +23,11 @@
 		</buildCommand>
 		<buildCommand>
 			<name>org.eclipse.wst.validation.validationbuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>org.drools.eclipse.droolsbuilder</name>
 			<arguments>
 			</arguments>
 		</buildCommand>

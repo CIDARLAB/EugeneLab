@@ -25,6 +25,8 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.cidarlab.eugene.Eugene;
+import org.cidarlab.eugene.exception.EugeneException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -82,13 +84,11 @@ public class EugeneLabServlet
     protected void processGetRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-    	System.out.println("[EugeneLabServlet.processGet] -> "+request.getParameter("command"));
-    	
-        //I'm returning a JSON object and not a string
+        //we're returning a JSON object
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
-        String command = request.getParameter("command");
 
+        String command = request.getParameter("command");
         try {
             if ("getFileList".equalsIgnoreCase(command)) {
             	// OK
@@ -207,6 +207,8 @@ public class EugeneLabServlet
 	        		this.createFile(request.getParameter("folder"), request.getParameter("filename"));
 	        	} else if("deleteFile".equalsIgnoreCase(command)) {
 	        		this.deleteFile(request.getParameter("folder"), request.getParameter("filename"));
+	        	} else if("execute".equalsIgnoreCase(command)) {
+	        		jsonResponse = this.executeEugene(request.getParameter("script"));
 	        	}
 
 	        	
@@ -356,6 +358,26 @@ public class EugeneLabServlet
     					folder, 
     					filename));
     	
+    }
+    
+    /**
+     * The executeEugene/1 method executes the Eugene script 
+     * that the user typed into the large textarea.
+     * 
+     * @param script
+     * @return a JSONObject containing the for the web-interface relevant information
+     * @throws EugeneException
+     */
+    private JSONObject executeEugene(String script) 
+    		throws EugeneException {
+    	
+    	try {
+			new Eugene().executeScript(script);
+    	} catch(Exception e) {
+    		throw new EugeneException(e.getMessage());
+    	}
+    	
+    	return new JSONObject();
     }
 
     private void saveFile(String fileName, String fileContent) throws IOException {

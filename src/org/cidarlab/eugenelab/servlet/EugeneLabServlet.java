@@ -1,34 +1,34 @@
 package org.cidarlab.eugenelab.servlet;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.UUID;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.cidarlab.eugene.Eugene;
+import org.cidarlab.eugene.data.pigeon.Pigeonizer;
+import org.cidarlab.eugene.dom.Component;
+import org.cidarlab.eugene.dom.container.EugeneCollection;
 import org.cidarlab.eugene.exception.EugeneException;
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -40,9 +40,10 @@ public class EugeneLabServlet
 
 	private static final long serialVersionUID = -5373818164273289666L;
 
-	
 	private DiskFileItemFactory factory;
-
+	private Eugene eugene;
+	private TreeBuilder treeBuilder;
+	
 	@Override
     public void init()
             throws ServletException {
@@ -69,7 +70,20 @@ public class EugeneLabServlet
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processGetRequest(request, response);
+
+    	/*
+    	 * do some session handling
+    	 */
+    	HttpSession session = request.getSession();
+    	if(null == this.eugene) {
+    		try {
+    			this.eugene = new Eugene(session.getId());
+    		} catch(EugeneException ee) {
+    			throw new ServletException(ee.toString());
+    		}
+    	}
+    	
+    	processGetRequest(request, response);
     }
 
     /**
@@ -94,8 +108,12 @@ public class EugeneLabServlet
             	// OK
                 out.write(this.getFiles());
 
-            } else if (command.equalsIgnoreCase("read")) {
+            } else if ("read".equalsIgnoreCase(command)) {
 
+            } else if ("getLibrary".equalsIgnoreCase(command)) {
+            	
+            	out.write(this.buildLibraryTree());
+            	
             } else if ("loadFile".equalsIgnoreCase(command)) {
                 response.setContentType("text/html;charset=UTF-8");
                 String fileName = request.getParameter("fileName");
@@ -105,7 +123,6 @@ public class EugeneLabServlet
                 out.write("{\"response\":\"test response\"}");
             }
         } catch (Exception e) {
-            e.printStackTrace();
             StringWriter stringWriter = new StringWriter();
             PrintWriter printWriter = new PrintWriter(stringWriter);
             e.printStackTrace(printWriter);
@@ -127,7 +144,21 @@ public class EugeneLabServlet
      * @throws IOException if an I/O error occurs
      */
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+    		throws IOException {
+
+    	/*
+    	 * do some session handling
+    	 */
+    	HttpSession session = request.getSession();
+    	if(null == this.eugene) {
+    		try {
+    			this.eugene = new Eugene(session.getId());
+    		} catch(EugeneException ee) {
+    			throw new IOException(ee.toString());
+    		}
+    	}
+
     	processPostRequest(request, response);
     }
 
@@ -197,7 +228,6 @@ public class EugeneLabServlet
                     }
                 }
                 
-                jsonResponse.put("status", "good");
 	        } else {
 	        	/*
 	        	 * read the command of the request
@@ -211,20 +241,22 @@ public class EugeneLabServlet
 	        		jsonResponse = this.executeEugene(request.getParameter("script"));
 	        	}
 
-	        	
-	        	System.out.println("[doPost] -> "+command);
 	        }
+
+    		jsonResponse.put("status", "good");
+    		
     	} catch(Exception e) {
     		jsonResponse.put("status", "exception");
-    		jsonResponse.put("reason", e.toString());
+    		jsonResponse.put("result", e.toString());
     	}
 
         /*
          * RESPONSE
          */
         PrintWriter writer = response.getWriter();
-        response.setContentType("application/json");
         response.sendRedirect("eugenelab.html");
+        response.setContentType("application/json");
+        System.out.println(jsonResponse);
         writer.write(jsonResponse.toString());
         writer.flush();
         writer.close();
@@ -236,90 +268,46 @@ public class EugeneLabServlet
     }
 
 
-    // Returns a JSON Array with the name of a file/directory and if it is a file
-    // {"name": name, "isFile", isFile}
+    // Returns a JSON Array (represented as String) 
+    // with the name of a file/directory and if it is a file
+    // {"title": name, "isFolder": true/false}
     private String getFiles() {
-        //String currentFolderExtension = this.getServletContext().getRealPath("/") + "/data/" + getCurrentUser() + "/";
-        String currentFolderExtension = Paths.get(this.getServletContext().getRealPath(""), "data", getCurrentUser()).toString();
+        String home = Paths.get(
+        		this.getServletContext().getRealPath(""), 
+        		"data", 
+        		getCurrentUser()).toString();
+        
+        // Lazy loading
+		if(null == this.treeBuilder) {
+			this.treeBuilder = new TreeBuilder();
+		}
 
-        File rootFolder = new File(currentFolderExtension);
-        List<File> queue = new ArrayList<File>();
-        List<JSONArray> folders = new ArrayList<JSONArray>();
-        List<Integer> folderSizes = new ArrayList<Integer>();
-        File[] rootFiles = rootFolder.listFiles();
-        if (null == rootFiles) {
-            return "";
+		return this.treeBuilder.buildFileTree(home).toString();
+    }
+    
+    private String buildLibraryTree() 
+    		throws EugeneException {
+    	
+		if(null == this.treeBuilder) {
+			this.treeBuilder = new TreeBuilder();
+		}
+		
+    	Collection<Component> library = null;
+        if(null != this.eugene) {
+        	try {
+        		library = this.eugene.getLibrary();
+        	} catch(EugeneException ee) {
+        		
+        	}
         }
-        for (int i = 0; i < rootFiles.length; i++) {
-            queue.add(rootFiles[i]);
-        }
-
-        JSONArray rootArray = new JSONArray();
-        JSONArray currentArray = rootArray;
-        boolean switchFolder = false;
-        int currentFolderSize = rootFolder.listFiles().length;
-        int counter = 1;
-        while (!queue.isEmpty()) {
-            try {
-                File currentFile = queue.get(0);
-                queue.remove(0);
-//                System.out.println(switchFolder + " " + counter + " | " + currentFolderSize + " " + currentFile.getName());
-
-                if (!switchFolder) {
-                    switchFolder = false;
-                }
-                JSONObject toPut = new JSONObject();
-                toPut.put("title", currentFile.getName());
-                currentArray.put(toPut);
-                if (currentFile.isDirectory()) {
-                    switchFolder = true;
-                    toPut.put("children", new JSONArray());
-                    toPut.put("isFolder", true);
-                    if (currentFile.listFiles().length > 0) {
-                        folderSizes.add(currentFile.listFiles().length);
-                        folders.add(toPut.getJSONArray("children"));
-                    }
-                    File[] subFiles = currentFile.listFiles();
-                    for (int i = 0; i < subFiles.length; i++) {
-                        queue.add(subFiles[i]);
-                    }
-                }
-                if (switchFolder && counter == currentFolderSize) {
-//                    System.out.println("switching");
-//                    System.out.println(folderSizes);
-                    currentArray = folders.get(0);
-                    currentFolderSize = folderSizes.get(0);
-                    folderSizes.remove(0);
-                    folders.remove(0);
-                    counter = 0;
-                    switchFolder = false;
-                }
-            } catch (JSONException ex) {
-                ex.printStackTrace();
-            }
-            counter++;
-        }
-        return rootArray.toString();
+        
+   		return this.treeBuilder.buildLibraryTree(library).toString();
     }
 
-    private String loadFile(String fileName) {
-        BufferedReader br = null;
-        try {
-            String currentFileExtension = getFileExtension(fileName, true);
-            File file = new File(currentFileExtension);
-            br = new BufferedReader(new FileReader(file.getAbsolutePath()));
-            String toReturn = "";
-            String line = br.readLine();
-            while (line != null) {
-                toReturn = toReturn + "\n\r" + line;
-                line = br.readLine();
-            }
-            br.close();
-            return toReturn;
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return "the bads";
-        }
+    private String loadFile(String fileName) 
+    		throws Exception {
+       	return new String(Files.readAllBytes(
+       						Paths.get(this.getServletContext().getRealPath(""), "data", getCurrentUser(), fileName)));
     }
     
     /**
@@ -371,13 +359,29 @@ public class EugeneLabServlet
     private JSONObject executeEugene(String script) 
     		throws EugeneException {
     	
-    	try {
-			new Eugene().executeScript(script);
-    	} catch(Exception e) {
-    		throw new EugeneException(e.getMessage());
+    	if(null == this.eugene) {
+    		this.eugene = new Eugene();
     	}
     	
-    	return new JSONObject();
+    	JSONObject jsonResponse = new JSONObject();
+    	
+    	try {
+    		Collection<Component> components = this.eugene.executeScript(script);
+    		
+    		/*
+    		 * process the collection
+    		 */
+    		EugeneCollection col = new EugeneCollection(UUID.randomUUID().toString());
+    		col.getElements().addAll(components);
+    		URI pigeon = new Pigeonizer().pigeonize(col);
+    		System.out.println(pigeon);
+    		jsonResponse.put("pigeon-uri", pigeon);
+    		
+    	} catch(Exception e) {
+    		throw new EugeneException(e.toString());
+    	}
+    	
+    	return jsonResponse;
     }
 
     private void saveFile(String fileName, String fileContent) throws IOException {

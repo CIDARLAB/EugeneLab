@@ -11,6 +11,7 @@ $(document).ready(function() {
     var _partIds = {}; //key: name, value: uuid
     var _newParts = {}; //key: name, value: part JSON
 
+    
     /********Functions********/
     //load files list
     var savePart = function(part, partId) {
@@ -186,6 +187,28 @@ $(document).ready(function() {
         });
     };
 
+    var loadLibraryTree = function() {
+        $("#libraryArea").html("");
+
+        $.get("EugeneLabServlet", {"command": "getLibrary"}, function(response) {
+
+            $("#libraryArea").dynatree({
+                onActivate: function(node) {
+                    // A DynaTreeNode object is passed to the activation handler
+                    // Note: we also get this event, if persistence is on, and the page is reloaded.
+//                alert("You activated " + node.data.title);
+                },
+                onDblClick: function() {
+                    loadFile();
+                },
+                persist: false,
+                children: response
+            });
+            
+            $('#libraryArea').dynatree("getTree").reload();
+        });
+    };
+    
     //draw the file table tree based on users file contents
     var loadFileTree = function() {
         $("#filesArea").html("");
@@ -319,6 +342,7 @@ $(document).ready(function() {
         } else {
             //refresh files
             loadFileTree();
+            loadLibraryTree();
         }
     });
 
@@ -472,6 +496,10 @@ $(document).ready(function() {
         deviceCount = deviceCount + 1;
     });
 
+    var progress = 0;
+    var timer = setInterval(updateProgressbar, 10);
+    
+
     //$('#runButton') jquery syntax
     //assigns various functions to the run button when clicked
     $('#runButton').click(function() {
@@ -479,6 +507,10 @@ $(document).ready(function() {
         //$('#outputMessage').html(outputMessageString);
         $('#outputArea').collapse('show');
 
+        /*
+         * start the timer
+         */
+        
         if ($('div#textEditorTab').hasClass("active")) {
             text = true;
         }
@@ -537,25 +569,38 @@ $(document).ready(function() {
 			***/
             
             $.post("EugeneLabServlet", command, function(response) {
-                $('#runButton').removeAttr("disabled");
-                //alert(response["status"]);
+            	
+            	$('#runButton').removeAttr("disabled");
+            	
+            	alert(response["status"]);
+
+            	//alert(response["status"]);
                 if ("good" === response["status"]) {
-                    if (response["results"] !== undefined) {
-                        var pigeonLinks = [];
+                	
+                	alert(response["results"]);
+                	
+                    alert('pigeon: ' + response["pigeon-uri"]);
+                    
+                    /*
+                     * PIGEON
+                     */                	
+                    if (response["pigeon-uri"] !== undefined) {
+//                        var pigeonLinks = [];
                         var imageHeader = '<div id="outputCarousel" class="slide carousel"><ol class="carousel-indicators">';
                         var images = '<div class="carousel-inner">';
                         var imageCount = 0;
-                        $.each(response["results"], function() {
-                            pigeonLinks.push(this["pigeon-uri"]);
+//                        $.each(response["results"], function() {
+//                            pigeonLinks.push(this["pigeon-uri"]);
+                            
                             var active = "";
                             if (imageCount === 0) {
                                 active = "active";
                             }
                             imageHeader = imageHeader + '<li class="' + active + '" data-target="#outputCarousel" +data-slide-to="' + imageCount + '"></li>';
-                            images = images + '<div class="item ' + active + '"><img src="' + this["pigeon-uri"] + '"/><div class="carousel-caption"><h4>' + this["name"] + '</h4></div></div>';
+                            images = images + '<div class="item ' + active + '"><img src="' + response["pigeon-uri"] + '"/><div class="carousel-caption"><h4>' + this["name"] + '</h4></div></div>';
                             imageCount++;
-                        }
-                        );
+//                        }
+//                        );
                         //render images
                         imageHeader = imageHeader + '</ol>';
                         images = images + '</div><a class="carousel-control left" href="#outputCarousel" data-slide="prev">&lsaquo;</a> <a class="carousel-control right" href="#outputCarousel" data-slide="next">&rsaquo;</a></div>';
@@ -567,6 +612,7 @@ $(document).ready(function() {
                         //handle each device
                         var newParts = {};
 
+/*                        
                         $.each(response["results"], function() {
                             if (newParts[this["name"]] !== "added") {
                                 _newParts[this["name"]] = this;
@@ -582,7 +628,7 @@ $(document).ready(function() {
                                 newParts[this["name"]] = "added";
                             }
                         });
-
+ */
                         toAppend = toAppend + "</tbody></table>";
                         $('#outputListArea').html(toAppend);
                         $("#outputList").dataTable({
@@ -614,14 +660,21 @@ $(document).ready(function() {
                 else if ("exception" === response["status"]) {
                     //alert(response["results"]);
                     //alert("Response: ", response["status"]);
-                    $('#outputMessage').html("Exception: " + response["results"]);
+                    $('#outputMessage').html("Exception: " + response["reason"]);
                     //console.log(response["error"]);
                 }
             });
         }
     });
 
-    /********Clotho Functions and Variables********/
+    /*
+     * LOAD the list of files and the library of the current user
+     */
+    loadLibraryTree();
+    loadFileTree();
+
+
+    /********Clotho Functions and Variables --- WILL BE UPDATED AS SOON AS CLOTHO IS UP AND RUNNING!
     var _connection = new WebSocket('wss://localhost:8443/websocket');
 
     var _requestCommand = {}; //key request id, value: callback function
@@ -669,7 +722,7 @@ $(document).ready(function() {
             });
         }
     };
-
+********/
 
     //functions to run on page load
 
@@ -680,8 +733,7 @@ $(document).ready(function() {
         theme: "neat",
         mode: "eugene"
     });
-
-    loadFileTree();
+    
     var command = {"command": "imageList"};
     // Get the JSON object with the location of the images
     // JSON has key imageList with a value as a array of JSON objects with a single key "location"
@@ -714,5 +766,18 @@ $(document).ready(function() {
         });
     });
 
+    function updateProgressbar(){
+        $("#progressbar").progressbar({
+            value: ++progress
+        });
+        if(progress == 100)
+            clearInterval(timer);
+    }
+
+    $(function () {
+        $("#progressbar").progressbar({
+            value: progress
+        });
+    });    
 });
 

@@ -225,10 +225,18 @@ CodeMirror.defineMode("eugene", function(config, parserConfig) {
     CodeMirror.defineMIME("eugene", {
         name: "eugene",
         keywords: words("boolean num txt PartType Property Rule Device include " +
-                "else for if return while"
-                +" ON CONTAINS AFTER BEFORE STARTSWITH EQUALS ENDSWITH WITH THEN NEXTTO MORETHAN"),
-        blockKeywords: words("else for if while"),
-        atoms: words("true false null undefined"),
+                "return ON on NOT not " +
+                "MORETHAN morethan CONTAINS contains EXACTLY exactly EQUALS equals SAME_COUNT same_count "+
+                "WITH with THEN then " +
+                "AFTER after ALL_AFTER all_after SOME_AFTER some_after "+
+                "BEFORE before ALL_BEFORE all_before SOME_BEFORE some_before "+
+                "NEXTTO nextto ALL_NEXTTO all_nextto SOME_NEXTTO some_nextto "+
+                "REPRESSES represses INDUCES induces DRIVES drives "+
+                "FORWARD forward ALL_FORWARD all_forward SOME_FORWARD some_forward "+
+                "REVERSE reverse ALL_REVERSE all_reverse SOME_REVERSE some_reverse "+
+                "ALTERNATE_ORIENTATION alternate_orientation "),
+        blockKeywords: words("if elseif else for"),
+        atoms: words("true false"),
         hooks: {
             "@": function(stream) {
                 stream.eatWhile(/[\w\$_]/);

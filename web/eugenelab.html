@@ -2,9 +2,9 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <!-- title>EugeneLab</title> -->
+        <title>EugeneLab</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <link rel="shortcut icon" href="images/icon.ico?v2">
+        <link rel="shortcut icon" href="images/icon.ico">
         <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
         <link href="css/bootstrap-responsive.min.css" rel="stylesheet" media="screen">
         <link rel="stylesheet" href="css/codemirror.css">
@@ -33,11 +33,14 @@
             }           
         </style>  
     </head>
-    <body>
+
+	<body>
+	
         <div class="navbar navbar-fixed-top navbar-inverse">
-            <div class="navbar-inner"> <a class="brand" href="index.html">EugeneLab</a>
+            <div class="navbar-inner"> 
                 <ul class="nav">
-                    <li class="active"><a href="eugenelab.html">Design</a></li>
+		            <li><a href="index.html">Home</a></li>
+                    <li class="active">Design</li>
                     <li><a href="documentation.html">How-To</a></li>
                     <li><a href="contact.html">Contact</a></li>
                 </ul>
@@ -54,22 +57,30 @@
                 <!-- <div class="span2 well"> -->
                  <div class="tabbable">
                       <ul id="leftTabHeader" class="nav nav-tabs">
-                          <!-- PARTS TYPE --- INACTIVE AT THE MOMENT    
-                          <li><a href="#partsTab" data-toggle="tab">Parts</a></li> 
-                          -->
-                          <li class="active"><a  href="#filesTab" data-toggle="tab">Files</a></li>
+                          <!-- PARTS TYPE --- INACTIVE AT THE MOMENT -->
+                              
+                          <li class="active"><a href="#libraryTab" data-toggle="tab">Library</a></li> 
+                          <li><a href="#filesTab" data-toggle="tab">Files</a></li>
                           <li class="pull-right"><button id="refreshButton"><i class="icon-refresh"></i></button></li>
                       </ul>
-                      <div id="leftTabs" class="tab-content">
-                          <div class="tab-pane" id="partsTab">                         
-                <div id="partsListArea"></div>
-                 <hr/>
+                      
+
+                <div id="leftTabs" class="tab-content">
+  				<div class="tab-pane" id="libraryTab">      
+	                <div class ="row-fluid">
+    	            	<div id="libraryArea" style="height:400px"> </div>
+	    	        </div>
+            	    <!--   <div  class="tab-pane" id="partsListArea"></div> -->
+                 
+             <hr/>
              </div>
-            <div class="tab-pane active" id="filesTab">
+             
+<!-- START -- FILE TAB -->             
+            <div class="tab-pane" id="filesTab">
                  <div class ="row-fluid">
-                <div id="filesArea" style="height:400px"> </div>
-            </div>
-            <br/>
+                	<div id="filesArea" style="height:400px"> </div>
+	            </div>
+    	        <br/>
               <div class="row-fluid">
                   <div class="btn-group btn-group-vertical">
                       <button id="loadButton" class="btn btn-default" style="width:126px">Open File</button>
@@ -128,7 +139,7 @@
                       <button id="noButton" class="btn btn-danger" data-dismiss="modal">No</button>
                   </div>
               </div>
-              
+<!-- END -- FILE TAB -->             
               
             </div>
         </div>
@@ -246,8 +257,10 @@
         <script src="jsLibraries/bootstrap.min.js"></script>
         <script src="javascript/EugeneLabController.js"></script>
         <script src="jsLibraries/codemirror.js"></script>
+        <script src="jsLibraries/active-line.js"></script>
         <script src="jsLibraries/jquery.dynatree.min.js"></script>
-        <!--<script src="jsLibraries/jquery.cookie.js"></script>-->
+        <script src="jsLibraries/jquery.cookie.js"></script>
+
         <script src="jsLibraries/eugene.js"></script>
 
 		<!--  Footer (BU + License) -->

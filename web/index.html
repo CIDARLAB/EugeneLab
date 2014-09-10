@@ -35,15 +35,21 @@
         </style>  
     </head>
     <body>
-        <div class="navbar navbar-fixed-top navbar-inverse">
+        <div class="navbar navbar-fixed-top">
             <div class="navbar-inner"> 
+            	<a class="brand" href="index.html">EugeneLab</a>
                 <ul class="nav">
-		            <li class="active">Home</li>
                     <li><a href="eugenelab.html">Design</a></li>
                     <li><a href="documentation.html">How-To</a></li>
                     <li><a href="contact.html">Contact</a></li>
                 </ul>
-                <!-- <p class="pull-right">You are logged in as <strong>jenhan</strong> <a id="logout">Log Out</a></p> -->
+                <div id="loginArea">
+                	<form id="loginForm" class="navbar-form pull-right" action="AuthenticationServlet" method="POST">
+                        <input name="user" type="text" class="span2" placeholder="Login">
+                        <input name="password" type="password" class="span2" placeholder="Password">
+                        <input type="submit" value="Login" class="btn"/>
+                    </form>
+                </div>
             </div>
         </div>
 
@@ -51,13 +57,15 @@
             <div class="hero-unit" align="center">
                 <h2>Welcome to</h2>
                 <h1><strong>EugeneLab</strong></h1>
-                <br>
-                <p> <a id="startLink" class="btn btn-primary btn-large" href="eugenelab.html"> Get Started</a> </p>
+                <br/>
+ 	        	<h4 class="text-center muted">a web-based IDE to speed up the design of your synthetic biological systems</h4>
+ 	        	<br/>
+                <p> 
+                <a id="startLink" class="btn btn-primary btn-large" href="eugenelab.html">Try It</a>&nbsp; 
+                <a id="startLink" class="btn btn-primary btn-large" href="login.html">Sign Up</a>&nbsp; 
+                </p>
             </div>
             <hr/>
- 	        <h4 class="text-center muted">Eugene is a human- and machine-readable language developed to speed up and 
-                innovate the design of novel biological systems. EugeneLab facilities their design by enabling the 
-                specification of constraints on the system's building blocks.</h4>
         </div>
         
         <br/>

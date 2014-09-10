@@ -12,15 +12,21 @@
 
     <body data-spy="scroll" data-target="#sidebar" >
 
-        <div class="navbar navbar-fixed-top navbar-inverse">
+        <div class="navbar navbar-fixed-top">
             <div class="navbar-inner"> 
+            	<a class="brand" href="index.html">EugeneLab</a>
                 <ul class="nav">
-		            <li><a href="index.html">Home</a></li>
                     <li><a href="eugenelab.html">Design</a></li>
-                    <li class="active">How-To</li>
+                    <li><a href="documentation.html">How-To</a></li>
                     <li><a href="contact.html">Contact</a></li>
                 </ul>
-                <!-- <p class="pull-right">You are logged in as <strong>jenhan</strong> <a id="logout">Log Out</a></p> -->
+                <div id="loginArea">
+                	<form id="loginForm" class="navbar-form pull-right" action="AuthenticationServlet" method="POST">
+                        <input name="user" type="text" class="span2" placeholder="Login">
+                        <input name="password" type="password" class="span2" placeholder="Password">
+                        <input type="submit" value="Login" class="btn"/>
+                    </form>
+                </div>
             </div>
         </div>
 
@@ -30,39 +36,14 @@
 
         <!-- NAVIGATION TOOL ON LEFT HAND SIDE OF SCREEN -->
         <div class="span2">
-            <div id="sidebar">
-                <ul class="nav nav-list affix">
-                    <li class="nav-header">Getting Started</li>
-                    <li id = "downloadRun" class="active"><a href = "#">Download and Run</a></li>
-                    <li class="nav-header"><a href = "#">Language Features</a></li>
-                    <li id = "basic_syntax"><a href = "#">Basic Syntax</a></li>
-                    <li id = "dataio"><a href = "#">Data Import and Export</a></li>
-                    <li id = "domainConcepts"><a href = "#">Domain-Specific Concepts</a></li>
-                    <li id = "controlFlow"><a href = "#">Control Flow</a></li>
-                    <li id = "dynamicNaming"><a href = "#">Dynamic Naming</a></li>
-                    <li id = "rules"><a href = "#">Rules</a></li>
-                    <li id = "preFunctions"><a href = "#">Pre-defined Functions</a></li>
-                    <li id = "combinatorialFunctions"><a href = "#">Combinatorial Functions</a></li>
-                    <li id = "directionality"><a href = "#">Directionality</a></li>
-                    <li id = "invertase"><a href="#">Invertase-based Designs</a></li>
-                    <li id = "regulatoryInteractions"><a href = "#">Regulatory Interactions</a></li>
-                    <li id = "vis"><a href = "#">Visualization</a></li>
-                    <li class="nav-header" id = "example"><a href="#">Examples</a></li>
-                    <li class="nav-header" id = "tools"><a href="#">Tools</a></li>
-                    <li class="nav-header" id = "publications"><a href="#">Publications</a></li>
-                </ul>
-            </div>
         </div>
 
         <div class="span10">
             <div class="row-fluid" id = "content" style = "margin-left:15px;">
-
-                <!-- The content gets filled in here based on what you click on the left hand side-->
-
-
-
-                    </div>
-                </div>
+				            
+				<iframe src="./Eugene_v2.0_spec.pdf" width=1024 height=768></iframe>
+            </div>
+        </div>
 
    
 

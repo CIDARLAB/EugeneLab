@@ -12,8 +12,6 @@ import java.util.Collection;
 import org.cidarlab.eugene.dom.Component;
 import org.cidarlab.eugene.dom.Device;
 import org.cidarlab.eugene.dom.Part;
-import org.cidarlab.eugene.dom.PartType;
-import org.cidarlab.eugene.dom.Property;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -109,17 +107,13 @@ public class TreeBuilder {
 	    	for(Component c : library) {
 	    		if(c instanceof Device) {
 	    			devices.add((Device)c);
-	    		} else if(c instanceof PartType) {
-	    			if(!parts.containsKey(c.getName())) {
-	    				parts.put(c.getName(), new HashSet<Part>());
-	    			}
 	    		} else if(c instanceof Part) {
-	    			if(!parts.containsKey(((Part) c).getPartType().getName())) {
-	    				parts.put(((Part) c).getPartType().getName(), new HashSet<Part>());
+	    			if(!parts.containsKey(((Part) c).getType().getName())) {
+	    				parts.put(((Part) c).getType().getName(), new HashSet<Part>());
 	    			}
 	    			
-	    			if(!parts.get(((Part) c).getPartType().getName()).contains(c)) {
-	    				parts.get(((Part) c).getPartType().getName()).add((Part)c);
+	    			if(!parts.get(((Part) c).getType().getName()).contains(c)) {
+	    				parts.get(((Part) c).getType().getName()).add((Part)c);
 	    			}
 	    		}
 	    	}

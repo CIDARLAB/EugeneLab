@@ -36,15 +36,21 @@
 
 	<body>
 	
-        <div class="navbar navbar-fixed-top navbar-inverse">
+        <div class="navbar navbar-fixed-top">
             <div class="navbar-inner"> 
+            	<a class="brand" href="index.html">EugeneLab</a>
                 <ul class="nav">
-		            <li><a href="index.html">Home</a></li>
-                    <li class="active">Design</li>
+                    <li><a href="eugenelab.html">Design</a></li>
                     <li><a href="documentation.html">How-To</a></li>
                     <li><a href="contact.html">Contact</a></li>
                 </ul>
-                <!-- <p class="pull-right">You are logged in as <strong>jenhan</strong> <a id="logout">Log Out</a></p> -->
+                <div id="loginArea">
+                	<form id="loginForm" class="navbar-form pull-right" action="AuthenticationServlet" method="POST">
+                        <input name="user" type="text" class="span2" placeholder="Login">
+                        <input name="password" type="password" class="span2" placeholder="Password">
+                        <input type="submit" value="Login" class="btn"/>
+                    </form>
+                </div>
             </div>
         </div>
 
@@ -212,8 +218,8 @@
                                                 -->
                                                 <div class="tabbable">
                                                     <ul class="nav nav-tabs" id="outputTabs">
-                                                        <li class="active"><a href="#outputImageTab" data-toggle="tab">Pigeon Images</a></li>
-                                                        <li><a href="#outputListTab" data-toggle="tab">Generated Parts</a></li>
+                                                        <li class="active"><a href="#outputImageTab" data-toggle="tab">SBOL Visual</a></li>
+                                                        <li><a href="#outputListTab" data-toggle="tab">Textual</a></li>
                                                         <!-- <li><a href="outputMessageTab" data-toggle="tab">Output Message</a><li> -->
                                                     </ul>
 

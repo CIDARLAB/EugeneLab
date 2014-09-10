@@ -571,16 +571,13 @@ $(document).ready(function() {
             $.post("EugeneLabServlet", command, function(response) {
             	
             	$('#runButton').removeAttr("disabled");
-            	
-            	alert(response["status"]);
 
             	//alert(response["status"]);
                 if ("good" === response["status"]) {
-                	
-                	alert(response["results"]);
-                	
-                    alert('pigeon: ' + response["pigeon-uri"]);
                     
+                	// clear the output message box
+                    $('#outputMessage').html('');
+
                     /*
                      * PIGEON
                      */                	
@@ -658,10 +655,14 @@ $(document).ready(function() {
                     }
                 }
                 else if ("exception" === response["status"]) {
-                    //alert(response["results"]);
-                    //alert("Response: ", response["status"]);
-                    $('#outputMessage').html("Exception: " + response["reason"]);
-                    //console.log(response["error"]);
+                	
+                	// print the exception
+                    $('#outputMessage').html("<font color=red>Exception: " + response["reason"] + "</font>");
+                    
+                    // delete the content of all other output areas
+                    $('#outputImageArea').html('');
+                    $('#outputListArea').html('');
+
                 }
             });
         }

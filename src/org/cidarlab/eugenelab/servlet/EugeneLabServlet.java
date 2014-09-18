@@ -16,7 +16,6 @@ import java.util.UUID;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,9 +27,9 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.cidarlab.eugene.Eugene;
 import org.cidarlab.eugene.data.pigeon.Pigeonizer;
 import org.cidarlab.eugene.dom.Component;
-import org.cidarlab.eugene.dom.NamedElement;
 import org.cidarlab.eugene.dom.imp.container.EugeneCollection;
 import org.cidarlab.eugene.exception.EugeneException;
+import org.cidarlab.web.Authenticator;
 import org.json.JSONObject;
 
 /**
@@ -231,18 +230,16 @@ public class EugeneLabServlet
                 }
                 
 	        } else {
-	        	/*
-	        	 * read the command of the request
-	        	 */
 	        	String command = request.getParameter("command");
-	        	if("login".equalsIgnoreCase(command)) {
-	        		
-	        	} else if("createFile".equalsIgnoreCase(command)) {
+
+	        	if("createFile".equalsIgnoreCase(command)) {
 	        		this.createFile(request.getParameter("folder"), request.getParameter("filename"));
 	        	} else if("deleteFile".equalsIgnoreCase(command)) {
 	        		this.deleteFile(request.getParameter("folder"), request.getParameter("filename"));
 	        	} else if("execute".equalsIgnoreCase(command)) {
 	        		jsonResponse = this.executeEugene(request.getParameter("script"));
+	        	} else {
+	        		throw new EugeneException("Invalid request!");
 	        	}
 
 	        }

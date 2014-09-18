@@ -67,31 +67,15 @@
                         <h3>Sign Up</h3>
                         <hr/>
                         <p>
-                            EugeneLab is currently in closed beta testing. Account registration is not open to the public at this point.
-                            <!--We are currently looking for beta testers in both academia and industry.
-                            Please contact the EugeneLab development team at 
-                            <a href="mailto:ravencadhelp@gmail.com">ravencadhelp@gmail.com</a> to request a login.
-                            In your email, please specify the following:</p>
-                        <ul>
-                            <li>Your name and your affiliation with a research insitution or corporate entity.</li>
-                            <li>Your contact information (so that we can set up a conversation with you regarding how we can make EugeneLab be an ideal solution for you</li>
-                            <li>A brief description of how you would like to use EugeneLab</li>
-                        </ul> 
-                        Thanks,
-                        <br/>
-                        <cite><small>EugeneLab Dev Team</small></cite>
-
-                    </div>
-                    <div id="recover" class="well">
-                        <h3>Recover Account</h3>
-                        <hr/>
-                        <p>Please send a email to <a href="mailto:ravencadhelp@gmail.com">ravencadhelp@gmail.com</a> to request your account information.
-                            We will send you your information within one business day. An automated system is coming soon.
-                        </p>
-                        Thanks,
-                        <br/>
-                        <cite><small>EugeneLab Dev Team</small></cite>
-                    </div> -->
+			                <div id="registerArea">
+			                	<form id="registerForm" class="navbar-form pull-right" action="AuthenticationServlet" method="POST">
+			                        <input name="user" type="text" class="span2" placeholder="Login">
+			                        <input name="password" type="password" class="span2" placeholder="Password">
+			                        <input name="register" type="hidden" class="span2" placeholder="">
+			                        <input type="submit" value="Sign up!" class="btn"/>
+			                    </form>
+			                </div>
+                
                 </div>
             </div>
         </div>

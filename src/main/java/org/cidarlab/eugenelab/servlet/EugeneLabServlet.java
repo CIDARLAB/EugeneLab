@@ -29,7 +29,6 @@ import org.cidarlab.eugene.data.pigeon.Pigeonizer;
 import org.cidarlab.eugene.dom.Component;
 import org.cidarlab.eugene.dom.imp.container.EugeneCollection;
 import org.cidarlab.eugene.exception.EugeneException;
-import org.cidarlab.web.Authenticator;
 import org.json.JSONObject;
 
 /**

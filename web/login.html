@@ -41,6 +41,7 @@
                         </ul>
                     </div>
                 </div>
+                
                 <div class="span10">
                     <div id="signIn" class="well">
                         <h3>Sign In</h3>
@@ -63,22 +64,26 @@
                             </div>
                         </div>
                     </div>
+
                     <div id="signUp" class="well">
                         <h3>Sign Up</h3>
                         <hr/>
-                        <p>
-			                <div id="registerArea">
-			                	<form id="registerForm" class="navbar-form pull-right" action="AuthenticationServlet" method="POST">
-			                        <input name="user" type="text" class="span2" placeholder="Login">
-			                        <input name="password" type="password" class="span2" placeholder="Password">
-			                        <input name="register" type="hidden" class="span2" placeholder="">
-			                        <input type="submit" value="Sign up!" class="btn"/>
-			                    </form>
-			                </div>
-                
-                </div>
-            </div>
-        </div>
+                        <div class="row-fluid">
+                            <div class="span6">
+                                <form style="width:50%" id="loginFormMain" action="AuthenticationServlet" method="POST">
+                                    Username: <input type="text" name="user" class="input-block-level" placeholder="User Name">
+                                    Password: <input type="password" name="password" class="input-block-level" placeholder="Password">
+                                    <button class="btn btn-large btn-primary" type="submit">Sign Up</button>
+                                </form>
+                            </div>
+                            <div class="span4">
+                                <p>Forgot your password?</p>
+                                <a href="#recover"><small>Recover it here</small></a>                            
+                            </div>
+                        </div>
+                    </div>
+				</div>
+    	    </div>
         </div>
         <!--scripts placed at the end to enhance page loading speed--> 
         <script type="text/javascript" src="jsLibraries/jquery-1.9.1.min.js"></script> 

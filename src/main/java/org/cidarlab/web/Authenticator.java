@@ -4,46 +4,93 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.util.Arrays;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 
+/**
+ * The Authenticator class represents the interface 
+ * between the AuthenticationServlet and the 
+ * persisted objects.
+ * 
+ * @author Ernst Oberortner
+ *
+ */
 public class Authenticator {
 
-	public static boolean login(String user, String password) {
+    private EntityManager entityManager;
+	
+	public Authenticator(String db) {
+        
+		try {
+			EntityManagerFactory emf = 
+					Persistence.createEntityManagerFactory( db );
+			
+			this.entityManager = emf.createEntityManager();
+
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public boolean login(String user, String password) 
+			throws AuthenticationException {
+
+		
+		UserInformation ui = this.entityManager.find(UserInformation.class, user);
+		if(null == ui) {
+			throw new AuthenticationException("Invalid Login!");
+		}
+
 		
 		/*
 		 * hash & salt the password
-		 */
-		byte[] encrypted_password = getEncryptedPassword(
-				password, generateSalt());
+		 */		
+		byte[] received_password = getEncryptedPassword(
+				password, ui.getSalt());
 	
-		/*
-		 * then, we store username and password into 
-		 * out database
-		 */
 		
-		System.out.println("user: " + user);
-		System.out.println("encrypted password: " + encrypted_password);
+		/*
+		 * now, the passwords must match
+		 */
+		if(Arrays.equals(received_password, ui.getEncryptedPassword())) {
+			return true;
+		}
 		
 		return false;
 	}
 
-	public static void register(String user, String password) {
+	public void register(String user, String password) 
+			throws AuthenticationException {
+		
+		if(null != this.entityManager.find(UserInformation.class, user)) {
+			throw new AuthenticationException("The user exists already!");
+		}
+		
 		
 		/*
 		 * hash & salt the password
 		 */
+		byte[] salt = generateSalt(); 
 		byte[] encrypted_password = getEncryptedPassword(
-				password, generateSalt());
-	
+				password, salt);
+		
 		/*
 		 * then, we store username and password into 
 		 * out database
 		 */
-		
-		System.out.println("user: " + user);
-		System.out.println("encrypted password: " + encrypted_password);
+		this.persist(
+				new UserInformation(user, salt, encrypted_password));
+	}
+	
+	private void persist(UserInformation ui) {
+		this.entityManager.getTransaction().begin();
+		this.entityManager.persist(ui);
+		this.entityManager.getTransaction().commit();
 	}
 	
 	
@@ -58,7 +105,7 @@ public class Authenticator {
 	 *            - Salt to use for the hashing
 	 * @return - Password hash
 	 */
-	private static byte[] getEncryptedPassword(String password, byte[] salt) {
+	private byte[] getEncryptedPassword(String password, byte[] salt) {
 		try {
 			// PBKDF2 with SHA-1 as the hashing algorithm. Note that the NIST
 			// specifically names SHA-1 as an acceptable hashing algorithm for
@@ -95,7 +142,7 @@ public class Authenticator {
 	/**
 	 * SALT generator
 	 */
-	private static byte[] generateSalt() {
+	private byte[] generateSalt() {
 		try {
 			// we're using SecureRandom instead of just Random
 			SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
@@ -116,5 +163,6 @@ public class Authenticator {
 		}
 		return null;
 	}
+	
 	
 }

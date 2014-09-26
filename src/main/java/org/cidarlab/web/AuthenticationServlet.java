@@ -3,6 +3,7 @@ package org.cidarlab.web;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
@@ -13,45 +14,60 @@ import org.json.JSONObject;
 
 /**
  *
- * @author CIDAR's Beer League
+ * @author Ernst Oberortner
  */
 public class AuthenticationServlet 
 	extends HttpServlet {
 
 	private static final long serialVersionUID = -1579220291590687064L;
 	
-	/**
-     * Processes requests for HTTP
-     * <code>POST</code> methods.
+	private static final String USER_DB_NAME = "CIDAR";
+	
+	// a reference to an instance 
+	// of the CIDAR authenticator
+	private Authenticator auth;
+	
+	@Override
+	public void init(ServletConfig config) 
+			throws ServletException {
+		
+	    super.init(config);
+	    
+	    this.auth = new Authenticator(USER_DB_NAME);
+	    
+	}
+    /**
+     * Handles the HTTP
+     * <code>POST</code> method.
      *
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    protected void processPostRequest(HttpServletRequest request, HttpServletResponse response)
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
     	JSONObject jsonResponse = new JSONObject();
-
+    	
         try {
         	
-        	String user = request.getParameter("username");
+        	String user = request.getParameter("user");
         	String password = request.getParameter("password");
         	
         	/*
         	 * read the command of the request
         	 */
-        	String command = request.getParameter("command");
-        	if("register".equalsIgnoreCase(command)) {
+        	if(null != request.getParameter("signup")) {
         		
-        		Authenticator.register(
+        		this.auth.register(
         				user, password);
         		
-        	} else if("login".equalsIgnoreCase(command)) {
+        	} else if(null != request.getParameter("login")) {
         		
-        		if(Authenticator.login(
-        				user, password)) {
+        		boolean bLogin = this.auth.login(user, password);
+        		if(bLogin) {
 
         			/*
         			 * VALID AUTHENTICATION 
@@ -93,6 +109,7 @@ public class AuthenticationServlet
         out.close();
     }
 
+
     /**
      * Processes requests for HTTP
      * <code>POST</code> methods.
@@ -128,21 +145,6 @@ public class AuthenticationServlet
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processGetRequest(request, response);
-    }
-
-    /**
-     * Handles the HTTP
-     * <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processPostRequest(request, response);
     }
 
     /**

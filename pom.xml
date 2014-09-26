@@ -1,13 +1,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>EugeneLab</groupId>
+  <groupId>org.cidarlab</groupId>
   <artifactId>EugeneLab</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>war</packaging>
   
   
   <build>
-    <sourceDirectory>src</sourceDirectory>
+    <sourceDirectory>src/main/java</sourceDirectory>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -17,6 +17,7 @@
           <target>1.7</target>
         </configuration>
       </plugin>
+      
       <plugin>
         <artifactId>maven-war-plugin</artifactId>
         <version>2.3</version>
@@ -38,23 +39,31 @@
 	        </configuration>
 	    </plugin>
       
-		<!--  
-      	<plugin>
-	        <groupId>org.mortbay.jetty</groupId>
-	        <artifactId>jetty-maven-plugin</artifactId>
-	        <version>${jetty.version}</version>
-      	</plugin>
-
+      
 		<plugin>
 		  <groupId>org.eclipse.jetty</groupId>
 		  <artifactId>jetty-maven-plugin</artifactId>
-		  <version>${project.version}</version>
+		  <version>9.2.3.v20140905</version>
+		  <configuration>
+		  	<webAppSourceDirectory>${basedir}/web</webAppSourceDirectory>
+		  	<webAppConfig>
+            	<contextPath>/EugeneLab</contextPath>
+            	<descriptor>${basedir}/web/WEB-INF/web.xml</descriptor>
+          </webAppConfig>
+		  </configuration>
 		</plugin>
-        -->
-            
+		
     </plugins>
   </build>
   	
+  	<repositories>
+	    <repository>
+			<id>oss.sonatype.org</id>
+			<name>OSS Sonatype Staging</name>
+			<url>https://oss.sonatype.org/content/groups/staging</url>
+		</repository>
+	</repositories>
+
     <dependencies>
     
 		<dependency>
@@ -81,7 +90,21 @@
 			<version>1.7.4</version>
 		</dependency>
 
-		<!--  DROOLS dependencies -->
+		<!-- testing the servlet -->
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.3.5</version>
+		</dependency>
+		
+		<!-- Jetty Web Server -->
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+			<version>8.1.16.v20140903</version>
+		</dependency>
+
+		<!-- DROOLS dependencies -->
 		<dependency>
 			<groupId>org.drools</groupId>
 			<artifactId>drools-core</artifactId>
@@ -98,27 +121,47 @@
 			<version>5.6.0.Final</version>
 		</dependency>
 
-		<!--  Apache Shiro Security Framework 
-		      for Login and Session Management -->
+		<!-- persistence -->
 		<dependency>
-			<groupId>org.apache.shiro</groupId>
-		  	<artifactId>shiro-core</artifactId>
-		  	<version>1.2.3</version>
+			<groupId>javax.persistence</groupId>
+			<artifactId>persistence-api</artifactId>
+			<version>1.0.2</version>
 		</dependency>
 
+
 		<dependency>
-  			<groupId>org.apache.shiro</groupId>
-  			<artifactId>shiro-web</artifactId>
-  			<version>1.2.3</version>
+			<groupId>org.eclipse.persistence</groupId>
+			<artifactId>eclipselink</artifactId>
+			<version>2.5.0-RC1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.eclipse.persistence</groupId>
+					<artifactId>commonj.sdo</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		
-
-		<!-- testing the servlet -->
+		<!--  database -->
 		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<version>4.3.5</version>
+			<groupId>org.apache.derby</groupId>
+			<artifactId>derby</artifactId>
+			<version>10.11.1.1</version>
 		</dependency>
-
+		
+		<!--  junit -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+		</dependency>
+		
+		<!-- dependency on eugene -->
+		<dependency>
+			<groupId>org.cidarlab</groupId>
+			<artifactId>eugene-core</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<scope>compile</scope>
+		</dependency>
+		
       </dependencies>
 </project>

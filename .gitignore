@@ -4,3 +4,7 @@
 /.classpath
 /bin
 /backup
+/cidar
+/.project
+/derby.log
+/test

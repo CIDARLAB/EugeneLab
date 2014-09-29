@@ -586,6 +586,8 @@ $(document).ready(function() {
                         var imageHeader = '<div id="outputCarousel" class="slide carousel"><ol class="carousel-indicators">';
                         var images = '<div class="carousel-inner">';
                         var imageCount = 0;
+                        
+                        alert(response["pigeon-uri"]);
 //                        $.each(response["results"], function() {
 //                            pigeonLinks.push(this["pigeon-uri"]);
                             
@@ -602,8 +604,11 @@ $(document).ready(function() {
                         imageHeader = imageHeader + '</ol>';
                         images = images + '</div><a class="carousel-control left" href="#outputCarousel" data-slide="prev">&lsaquo;</a> <a class="carousel-control right" href="#outputCarousel" data-slide="next">&rsaquo;</a></div>';
                         var slideShow = imageHeader + images;
-                        $('#outputImageArea').html(slideShow);
-                        $('#outputCarousel').carousel({interval: 5000});
+                        
+                        $('#outputImageArea').html('<img src=".' + response["pigeon-uri"] + '"/>');
+                        
+                        //$('#outputImageArea').html(slideShow);
+                        //$('#outputCarousel').carousel({interval: 5000});
                         //render new parts list
                         var toAppend = '<table class="table table-bordered table-hover" id="outputList"><thead><tr><th>Name</th><th>Type</th><th></th></tr></thead><tbody>';
                         //handle each device

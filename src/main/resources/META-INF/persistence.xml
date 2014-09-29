@@ -24,7 +24,7 @@
       	<property name="javax.persistence.jdbc.url"        value="jdbc:derby:test;create=true" />
       	<property name="javax.persistence.jdbc.user"       value="" />
       	<property name="javax.persistence.jdbc.password"   value="" />
-		<property name="eclipselink.ddl-generation" 		value="drop-and-create-tables" />
+		<property name="eclipselink.ddl-generation" 		value="create-tables" />
 	</properties>
   </persistence-unit>
 

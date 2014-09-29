@@ -45,10 +45,8 @@
 		  <artifactId>jetty-maven-plugin</artifactId>
 		  <version>9.2.3.v20140905</version>
 		  <configuration>
-		  	<webAppSourceDirectory>${basedir}/web</webAppSourceDirectory>
 		  	<webAppConfig>
             	<contextPath>/EugeneLab</contextPath>
-            	<descriptor>${basedir}/web/WEB-INF/web.xml</descriptor>
           </webAppConfig>
 		  </configuration>
 		</plugin>
@@ -160,8 +158,15 @@
 			<groupId>org.cidarlab</groupId>
 			<artifactId>eugene-core</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-			<scope>compile</scope>
 		</dependency>
 		
+		<dependency>
+		    <artifactId>org</artifactId>
+		    <groupId>jacop</groupId>
+		    <version>4.1.0</version>
+		    <scope>system</scope>
+		    <systemPath>${basedir}/lib/jacop-4.1.0.jar</systemPath>
+		</dependency>
+
       </dependencies>
 </project>

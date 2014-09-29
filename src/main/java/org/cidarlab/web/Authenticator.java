@@ -40,6 +40,8 @@ public class Authenticator {
 	public boolean login(String user, String password) 
 			throws AuthenticationException {
 
+		System.out.println("[Login] user: " + user);
+		System.out.println("[Login] ui : " + this.entityManager.find(UserInformation.class, user));
 		
 		UserInformation ui = this.entityManager.find(UserInformation.class, user);
 		if(null == ui) {
@@ -85,12 +87,14 @@ public class Authenticator {
 		 */
 		this.persist(
 				new UserInformation(user, salt, encrypted_password));
+		
+		System.out.println("[Register] ui : " + this.entityManager.find(UserInformation.class, user));
 	}
 	
 	private void persist(UserInformation ui) {
-		this.entityManager.getTransaction().begin();
+//		this.entityManager.getTransaction().begin();
 		this.entityManager.persist(ui);
-		this.entityManager.getTransaction().commit();
+//		this.entityManager.getTransaction().commit();
 	}
 	
 	

@@ -1,5 +1,6 @@
 package org.cidarlab.eugenelab.servlet;
 
+import java.awt.image.RenderedImage;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -11,9 +12,16 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.FileImageOutputStream;
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -27,6 +35,8 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.cidarlab.eugene.Eugene;
 import org.cidarlab.eugene.data.pigeon.Pigeonizer;
 import org.cidarlab.eugene.dom.Component;
+import org.cidarlab.eugene.dom.Device;
+import org.cidarlab.eugene.dom.NamedElement;
 import org.cidarlab.eugene.dom.imp.container.EugeneCollection;
 import org.cidarlab.eugene.exception.EugeneException;
 import org.json.JSONObject;
@@ -44,14 +54,21 @@ public class EugeneLabServlet
 	private Eugene eugene;
 	private TreeBuilder treeBuilder;
 	
+	private Pigeonizer pigeon;
+	private String IMAGE_DIRECTORY;
+	
 	@Override
-    public void init()
+    public void init(ServletConfig config)
             throws ServletException {
 
-        super.init();
+        super.init(config);
 
         this.factory = null;
         
+        // initialize a Pigeonizer instance
+        this.pigeon = new Pigeonizer();
+
+        this.IMAGE_DIRECTORY = config.getInitParameter("IMAGE_DIRECTORY");
         //this.clotho = ClothoFactory.getAPI("ws://localhost:8080/websocket");
     }
 
@@ -368,15 +385,18 @@ public class EugeneLabServlet
     	try {
     		Collection<Component> components = this.eugene.executeScript(script);
     		
-    		System.out.println("components:" + components);
-    		
     		/*
     		 * process the collection
     		 */
     		EugeneCollection col = new EugeneCollection(UUID.randomUUID().toString());
     		col.getElements().addAll(components);
-    		URI pigeon = new Pigeonizer().pigeonize(col);
-    		System.out.println(pigeon);
+
+    		/*
+    		 * visualize the components using Pigeon
+    		 * (i.e. SBOL Visual compliant symbols)
+    		 */
+    		URI pigeon = this.pigeonize(col);
+    		
     		jsonResponse.put("pigeon-uri", pigeon);
     		
     	} catch(Exception e) {
@@ -384,6 +404,74 @@ public class EugeneLabServlet
     	}
     	
     	return jsonResponse;
+    }
+    
+    /*
+     * PIGEON
+     */
+    private URI pigeonize(EugeneCollection col) 
+    		throws EugeneException {
+		
+    	try {
+			
+    		// visualize every single device of the collection
+    		List<URI> uris = new ArrayList<URI>();
+			for(NamedElement ne : col.getElements()) {
+				if(ne instanceof Device) {
+					uris.add(
+						this.pigeon.pigeonizeSingle((Device)ne, null));
+				}
+			}
+			
+			// do some file/directory management
+			// arghhh
+			String pictureName = UUID.randomUUID() + ".png";
+			String imgFilename = "." + this.IMAGE_DIRECTORY + "/" + pictureName;			
+			File imgFile = new File(imgFilename);
+			if(!imgFile.getParentFile().exists()) {
+				imgFile.getParentFile().mkdir();
+				imgFile.getParentFile().mkdirs();
+			}
+			
+			// merge all images (created above) 
+			// into a single big image
+			RenderedImage img = this.pigeon.toMergedImage(uris);
+			
+			// serialize the image to the filesystem
+			this.writeToFile(img, imgFilename);
+
+			// if everything went fine so far, 
+			// then we return the relative URL of
+			// the resulting image
+			return URI.create("/tmp/" + pictureName);
+			
+    	} catch(Exception ee) {
+    		// something went wrong, i.e.
+    		// throw an exception
+    		throw new EugeneException(ee.getMessage());
+    	}
+		
+    }
+    
+    public void writeToFile(RenderedImage buff, String savePath) 
+    		throws EugeneException {
+        try {
+
+//            System.out.println("got image : " + buff.toString());
+            Iterator iter = ImageIO.getImageWritersByFormatName("png");
+            ImageWriter writer = (ImageWriter)iter.next();
+            ImageWriteParam iwp = writer.getDefaultWriteParam();
+
+            File file = new File(savePath);
+            FileImageOutputStream output = new FileImageOutputStream(file);
+            writer.setOutput(output);
+            IIOImage image = new IIOImage(buff, null, null);
+            writer.write(null, image, iwp);
+            writer.dispose();
+
+        } catch (Exception e) {
+            throw new EugeneException(e.getMessage());
+        }
     }
 
     private void saveFile(String fileName, String fileContent) throws IOException {

@@ -5,6 +5,10 @@
     <servlet>
         <servlet-name>EugeneLabServlet</servlet-name>
         <servlet-class>org.cidarlab.eugenelab.servlet.EugeneLabServlet</servlet-class>
+        <init-param>
+        	<param-name>IMAGE_DIRECTORY</param-name>
+        	<param-value>/src/main/webapp/tmp</param-value>
+        </init-param>
     </servlet>
     <servlet-mapping>
         <servlet-name>EugeneLabServlet</servlet-name>

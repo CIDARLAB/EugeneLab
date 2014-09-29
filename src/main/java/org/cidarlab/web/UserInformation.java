@@ -2,8 +2,6 @@ package org.cidarlab.web;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 
 /**
  * The UserInformation class defines objects as triplets

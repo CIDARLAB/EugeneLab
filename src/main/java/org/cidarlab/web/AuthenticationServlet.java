@@ -22,6 +22,7 @@ public class AuthenticationServlet
 	private static final long serialVersionUID = -1579220291590687064L;
 	
 	private static final String USER_DB_NAME = "CIDAR";
+	private static org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger("AuthenticationServlet");
 	
 	// a reference to an instance 
 	// of the CIDAR authenticator
@@ -34,6 +35,13 @@ public class AuthenticationServlet
 	    super.init(config);
 	    
 	    this.auth = new Authenticator(USER_DB_NAME);
+	    
+	    // set a system property such that Simple Logger will include timestamp
+        System.setProperty("org.slf4j.simpleLogger.showDateTime", "true");
+        // set a system property such that Simple Logger will include timestamp in the given format
+        System.setProperty("org.slf4j.simpleLogger.dateTimeFormat", "dd-MM-yy HH:mm:ss");
+        // set minimum log level for SLF4J Simple Logger at warn
+        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "warn");
 	    
 	}
     /**
@@ -56,45 +64,64 @@ public class AuthenticationServlet
         	String user = request.getParameter("user");
         	String password = request.getParameter("password");
         	
+        	
         	/*
-        	 * read the command of the request
+        	 * SIGNUP
         	 */
         	if(null != request.getParameter("signup")) {
         		
-        		this.auth.register(
+        		LOGGER.warn("SIGNUP! user: " + user +", password: " + password);
+
+            	this.auth.register(
         				user, password);
         		
+            /*
+             * LOGIN
+             */
         	} else if(null != request.getParameter("login")) {
         		
-        		boolean bLogin = this.auth.login(user, password);
+        		LOGGER.warn("LOGIN! user: " + user +", password: " + password);
+
+            	boolean bLogin = this.auth.login(user, password);
+        		
         		if(bLogin) {
+            		LOGGER.warn("LOGIN VALID!");
 
         			/*
         			 * VALID AUTHENTICATION 
         			 */
-	                Cookie authenticateCookie = new Cookie("authenticate", "authenticated");
+	                Cookie authenticateCookie = new Cookie("eugenelab", "authenticated");
 	                Cookie userCookie = new Cookie("user", user);
 	                authenticateCookie.setMaxAge(60 * 60); //cookie lasts for an hour
 	                response.addCookie(authenticateCookie);
 	                response.addCookie(userCookie);
-	                response.sendRedirect("index.html");
-	                
-        		} else {
-        			
-        			/*
-        			 * INVALID AUTHENTICATION 
-        			 */
-	                Cookie authenticateCookie = new Cookie("authenticate", "failed");
-	                authenticateCookie.setMaxAge(60 * 60); //cookie lasts for an hour
-	                response.addCookie(authenticateCookie);
-	                response.sendRedirect("login.html");
+	                response.sendRedirect("eugenelab.html");
+
+// do we need to set a cookie if authentication failed?	                
+//        		} else {
+//        			
+//        			/*
+//        			 * INVALID AUTHENTICATION 
+//        			 */
+//	                Cookie authenticateCookie = new Cookie("eugenelab", "failed");
+//	                authenticateCookie.setMaxAge(60 * 60); //cookie lasts for an hour
+//	                response.addCookie(authenticateCookie);
+//	                response.sendRedirect("login.html");
         		}
+        		
+        	/*
+        	 *  LOGOUT
+        	 */
+        	} else if(null != request.getParameter("logout")) {
+        		
+            } else {
+            	LOGGER.warn("Invalid login! user: " + user + ", password: " + password);
             }
         } catch(Exception e) {
         	
     		jsonResponse.put("status", "exception");
     		jsonResponse.put("result", e.toString());
-        
+    		LOGGER.warn(e.toString());
         } 
 
         /*

@@ -587,7 +587,6 @@ $(document).ready(function() {
                         var images = '<div class="carousel-inner">';
                         var imageCount = 0;
                         
-                        alert(response["pigeon-uri"]);
 //                        $.each(response["results"], function() {
 //                            pigeonLinks.push(this["pigeon-uri"]);
                             

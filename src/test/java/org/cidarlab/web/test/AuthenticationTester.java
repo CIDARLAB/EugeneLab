@@ -26,11 +26,15 @@ public class AuthenticationTester {
 	@Test
 	public void testRegister() {
 
+		String exception = null;
+		
 		try {
 			auth.register("ernst", "s3cr3t");
 		} catch(AuthenticationException ae) {
-			ae.printStackTrace();
+			exception = ae.getMessage();
 		}
+
+		assertEquals(exception, null);
 	}
 	
 	@Test

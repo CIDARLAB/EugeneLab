@@ -44,12 +44,13 @@
                     <li><a href="documentation.html">How-To</a></li>
                     <li><a href="contact.html">Contact</a></li>
                 </ul>
-                <div id="loginArea">
-                	<form id="loginForm" class="navbar-form pull-right" action="AuthenticationServlet" method="POST">
-                        <input name="user" type="text" class="span2" placeholder="Login">
-                        <input name="password" type="password" class="span2" placeholder="Password">
-                        <input type="submit" value="Login" class="btn"/>
-                    </form>
+
+				<!-- Login -->                
+                <div id="loginArea" class="navbar-form pull-right">
+	                <input id="login_username" type="text" class="span2" placeholder="Login">
+	                <input id="login_password" type="password" class="span2" placeholder="Password">
+	                <input id="btnLogin" type="submit" value="Login" class="btn btn-primary"/>
+                	<div id="loginError"></div>                
                 </div>
             </div>
         </div>
@@ -90,9 +91,9 @@
               <div class="row-fluid">
                   <div class="btn-group btn-group-vertical">
                       <button id="loadButton" class="btn btn-default" style="width:126px">Open File</button>
-                      <a href="#newFileModal" class="btn btn-default" data-toggle="modal" style="width:100px">New File</a>
-                      <a href="#uploadFileModal" class="btn btn-default" data-toggle="modal" style="width:100px">Upload File</a>
-                      <a href="#deleteFileModal" id="deleteModalButton" class="btn btn-default" style="width:100px" data-toggle="modal">Delete File</a> 
+                      <a href="#newFileModal" id="btnNewFile" id="newFileButton" class="btn btn-default" data-toggle="modal" style="width:100px">New File</a>
+                      <a href="#uploadFileModal" id="btnUploadFile" class="btn btn-default" data-toggle="modal" style="width:100px">Upload File</a>
+                      <a href="#deleteFileModal" id="btnDeleteFile" class="btn btn-default" style="width:100px" data-toggle="modal">Delete File</a> 
                   </div>
               </div>
               
@@ -157,12 +158,13 @@
             <div class="span8">
                 <div class="tabbable">
                     <ul id="dataTableHeader" class="nav nav-tabs nav-pills">
-                        <!-- <li ><a href="#spectaclesEditorTab" data-toggle="tab">Graphical Editor</a></li> -->
-                        <!-- <li class="active"><a  href="#textEditorTab" data-toggle="tab">Text Editor</a></li> -->
-                        <!-- <li><a>Current Open File: <Strong id="fileName">New File.eug</Strong></a></li> -->
-                        <!-- <li class="pull-right"><button style="width:150px" id="saveButton" class="btn btn-success">Save</button></li> -->
-                        <li class="pull-left"><h5>Click "Run" to Try EugeneLab!</h5></li>
-                        <li class="pull-right"><button style="width:150px" id="runButton" class="btn btn-danger">Run</button></li>
+                        <li id="fileName" class="pull-left"></li>
+                        <li id="hint" class="pull-left"><h5>Click "Run" to Try EugeneLab!</h5></li>
+                        <li class="pull-right">
+                        	<button style="width:150px" id="btnSave" class="btn btn-success">Save</button>
+                        	<button style="width:150px" id="btnRun" class="btn btn-danger">Run</button>
+                       	</li>
+                        <li id="saveInfo" class="pull-right"></li>
                     </ul>
 
                     <div id="dataTableContent" class="tab-content">
@@ -203,7 +205,7 @@
                                             <div id ="outputWell" class="well">
                                             <div class="well well-small" id="outputHeader">
                                                 <h6>Output Messages: </h6>
-                                                <div id="outputMessage">
+                                                <div class="alert alert-danger" id="outputMessage">
                                                     <a href="outputMessage"></a>
                                                 </div>
                                             </div>

@@ -24,6 +24,7 @@ import javax.imageio.stream.FileImageOutputStream;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -56,7 +57,10 @@ public class EugeneLabServlet
 	
 	private Pigeonizer pigeon;
 	private String IMAGE_DIRECTORY;
+	private static org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger("EugenLabServlet");
+	private static final String USER_HOMES = "home";
 	
+
 	@Override
     public void init(ServletConfig config)
             throws ServletException {
@@ -70,10 +74,23 @@ public class EugeneLabServlet
 
         this.IMAGE_DIRECTORY = config.getInitParameter("IMAGE_DIRECTORY");
         //this.clotho = ClothoFactory.getAPI("ws://localhost:8080/websocket");
+        
+	    // set a system property such that Simple Logger will include timestamp
+        System.setProperty("org.slf4j.simpleLogger.showDateTime", "true");
+        // set a system property such that Simple Logger will include timestamp in the given format
+        System.setProperty("org.slf4j.simpleLogger.dateTimeFormat", "dd-MM-yy HH:mm:ss");
+
+        // set minimum log level for SLF4J Simple Logger at warn
+        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "warn");
+        
+        LOGGER.warn("[EugeneLabServlet] loaded!");	    
     }
 
     @Override
     public void destroy() {
+    	// TODO: persist all running instances of Sparrow 
+    	
+        LOGGER.warn("[EugeneLabServlet] destroying eugene servlet...");	    
     }
 
     /**
@@ -120,21 +137,27 @@ public class EugeneLabServlet
         PrintWriter out = response.getWriter();
 
         String command = request.getParameter("command");
+
+        // retrieve the username from the session information
+        String username = this.getUsername(request.getCookies());
+        
+        LOGGER.warn("[processGetRequest] -> " + command + ", " + username);
+        
         try {
             if ("getFileList".equalsIgnoreCase(command)) {
             	// OK
-                out.write(this.getFiles());
+                out.write(this.getFiles(username));
 
             } else if ("read".equalsIgnoreCase(command)) {
 
             } else if ("getLibrary".equalsIgnoreCase(command)) {
             	
-            	out.write(this.buildLibraryTree());
+            	out.write(this.buildLibraryTree(username));
             	
             } else if ("loadFile".equalsIgnoreCase(command)) {
                 response.setContentType("text/html;charset=UTF-8");
                 String fileName = request.getParameter("fileName");
-                String toReturn = loadFile(fileName);
+                String toReturn = loadFile(username, fileName);
                 out.write(toReturn);
             } else if (command.equals("test")) {
                 out.write("{\"response\":\"test response\"}");
@@ -196,7 +219,10 @@ public class EugeneLabServlet
     	JSONObject jsonResponse = new JSONObject();
     	
     	try {
-    		
+
+    		// retrieve the username from the session information
+            String username = this.getUsername(request.getCookies());
+
     		if (ServletFileUpload.isMultipartContent(request)) {
 
 	        	/*
@@ -214,7 +240,7 @@ public class EugeneLabServlet
             	/*
             	 * check if the user's directory exists already
             	 */
-            	String uploadFilePath = Paths.get(this.getServletContext().getRealPath(""), "data", getCurrentUser()).toString();
+            	String uploadFilePath = Paths.get(this.getServletContext().getRealPath(""), USER_HOMES, username).toString();
                 File userDir = new File(uploadFilePath);
                 if(!userDir.exists()) {
                 	userDir.mkdirs();
@@ -231,7 +257,7 @@ public class EugeneLabServlet
                         String fileName = item.getName();
                         
                         if (fileName.equals("")) {
-                            System.out.println("You forgot to choose a file.");
+                            LOGGER.warn("You forgot to choose a file.");
                         }
 
                         if (fileName.lastIndexOf("\\") >= 0) {
@@ -249,9 +275,11 @@ public class EugeneLabServlet
 	        	String command = request.getParameter("command");
 
 	        	if("createFile".equalsIgnoreCase(command)) {
-	        		this.createFile(request.getParameter("folder"), request.getParameter("filename"));
+	        		this.createFile(username, request.getParameter("filename"));
+	        	} else if("saveFile".equalsIgnoreCase(command)) {
+	        		this.saveFile(username, request.getParameter("filename"), request.getParameter("content"));
 	        	} else if("deleteFile".equalsIgnoreCase(command)) {
-	        		this.deleteFile(request.getParameter("folder"), request.getParameter("filename"));
+	        		this.deleteFile(username, request.getParameter("filename"));
 	        	} else if("execute".equalsIgnoreCase(command)) {
 	        		jsonResponse = this.executeEugene(request.getParameter("script"));
 	        	} else {
@@ -279,19 +307,26 @@ public class EugeneLabServlet
 
     }
 
-    private String getCurrentUser() {
-        return "testuser";
-    }
-
-
     // Returns a JSON Array (represented as String) 
     // with the name of a file/directory and if it is a file
     // {"title": name, "isFolder": true/false}
-    private String getFiles() {
+    private String getFiles(String username) {
+    	
         String home = Paths.get(
         		this.getServletContext().getRealPath(""), 
-        		"data", 
-        		getCurrentUser()).toString();
+        		USER_HOMES, 
+        		username).toString();
+        
+        // if the user does not have a "home"-directory,
+        // then we create one
+        // this could also be done at the SignUp stage 
+        // in the AuthenticationServlet. At the time being,
+        // it's unclear how the AuthenticationServlet will 
+        // be used for the CIDAR Lab Web of Apps
+        if(!new File(home).exists()) {
+        	new File(home).mkdir();
+        	new File(home).mkdir();
+        }
         
         // Lazy loading
 		if(null == this.treeBuilder) {
@@ -301,7 +336,7 @@ public class EugeneLabServlet
 		return this.treeBuilder.buildFileTree(home).toString();
     }
     
-    private String buildLibraryTree() 
+    private String buildLibraryTree(String username) 
     		throws EugeneException {
     	
 		if(null == this.treeBuilder) {
@@ -320,10 +355,10 @@ public class EugeneLabServlet
    		return this.treeBuilder.buildLibraryTree(library).toString();
     }
 
-    private String loadFile(String fileName) 
+    private String loadFile(String username, String fileName) 
     		throws Exception {
        	return new String(Files.readAllBytes(
-       						Paths.get(this.getServletContext().getRealPath(""), "data", getCurrentUser(), fileName)));
+       						Paths.get(this.getServletContext().getRealPath(""), USER_HOMES, username, fileName)));
     }
     
     /**
@@ -332,15 +367,14 @@ public class EugeneLabServlet
      * @param filename
      * @throws IOException
      */
-    private void createFile(String folder, String filename) 
+    private void createFile(String username, String filename) 
     		throws IOException {
     	
     	Files.createFile(
     			Paths.get(
     					this.getServletContext().getRealPath(""), 
-    					"data", 
-    					getCurrentUser(), 
-    					folder, 
+    					USER_HOMES, 
+    					username, 
     					filename));
     	
     }
@@ -351,15 +385,14 @@ public class EugeneLabServlet
      * @param filename
      * @throws IOException
      */
-    private void deleteFile(String folder, String filename) 
+    private void deleteFile(String username, String filename) 
     		throws IOException {
     	
     	Files.deleteIfExists(
     			Paths.get(
     					this.getServletContext().getRealPath(""), 
-    					"data", 
-    					getCurrentUser(), 
-    					folder, 
+    					USER_HOMES, 
+    					username, 
     					filename));
     	
     }
@@ -455,9 +488,9 @@ public class EugeneLabServlet
     
     public void writeToFile(RenderedImage buff, String savePath) 
     		throws EugeneException {
-        try {
 
-//            System.out.println("got image : " + buff.toString());
+    	try {
+//            Logger.warn("got image : " + buff.toString());
             Iterator iter = ImageIO.getImageWritersByFormatName("png");
             ImageWriter writer = (ImageWriter)iter.next();
             ImageWriteParam iwp = writer.getDefaultWriteParam();
@@ -474,20 +507,59 @@ public class EugeneLabServlet
         }
     }
 
-    private void saveFile(String fileName, String fileContent) throws IOException {
-        String currentFileExtension = getFileExtension("/" + fileName, true);
+    private void saveFile(String username, String fileName, String fileContent) 
+    		throws EugeneException {
+        String currentFileExtension = getFileExtension(username, "/" + fileName, true);
         File file = new File(currentFileExtension);
-        BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsoluteFile()));
-        bw.write(fileContent);
-        bw.close();
+        try {
+	        BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsoluteFile()));
+	        bw.write(fileContent);
+	        bw.flush();
+	        bw.close();
+        } catch(Exception e) {
+        	throw new EugeneException(e.getLocalizedMessage());
+        }
     }
 
-    private String getFileExtension(String localExtension, boolean isFile) {
+    private String getFileExtension(String username, String localExtension, boolean isFile) {
         //String extension = this.getServletContext().getRealPath("/") + "/data/" + getCurrentUser() + "/" + localExtension;
-        String extension = Paths.get(this.getServletContext().getRealPath(""), "data", getCurrentUser(), localExtension).toString();
+        String extension = Paths.get(this.getServletContext().getRealPath(""), USER_HOMES, username, localExtension).toString();
         if (!isFile) {
             extension += "/";
         }
         return extension;
     }
+    
+    
+    
+    /*------------------------------
+     * Session Management methods
+     * 
+     *  not sure yet if we should introduce a separate 
+     *  class for this?!
+     *-----------------------------*/
+
+    // the DEFAULT_FREE_USER denotes the username 
+    // if the current EugeneLab client hits the 
+    // "Try it for free!" button
+    private static final String DEFAULT_FREE_USER = "no_name_user";
+    
+    private String getUsername(Cookie[] cookies) {
+    	
+        String username = this.getDefaultUser();
+    	for(Cookie c : cookies) {
+    		if("user".equalsIgnoreCase(c.getName())) {
+    			return c.getValue();
+    		}
+    	}
+
+    	return username;
+    }
+    
+    
+    private String getDefaultUser() {
+        return DEFAULT_FREE_USER;
+    }
+
+
 }

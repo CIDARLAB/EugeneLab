@@ -24,6 +24,11 @@ public class Authenticator {
 
     private EntityManager entityManager;
 	
+    /**
+     * Authenticator Constructor
+     * @param db ... the name of the DB which contains 
+     *               username and password information
+     */
 	public Authenticator(String db) {
         
 		try {
@@ -37,64 +42,82 @@ public class Authenticator {
 		}
 	}
 	
+	/**
+	 * The login/2 method evaluates if a given user and password
+	 * exists.
+	 * 
+	 * @param user  ... username
+	 * @param password ... password
+	 * @return true  ... the user exists
+	 *         false ... the user does not exist
+	 * @throws AuthenticationException
+	 */
 	public boolean login(String user, String password) 
 			throws AuthenticationException {
 
-		System.out.println("[Login] user: " + user);
-		System.out.println("[Login] ui : " + this.entityManager.find(UserInformation.class, user));
-		
 		UserInformation ui = this.entityManager.find(UserInformation.class, user);
 		if(null == ui) {
+			// if the user does not exist, we throw an exception
 			throw new AuthenticationException("Invalid Login!");
 		}
-
 		
 		/*
-		 * hash & salt the password
+		 * hash & salt the received password
 		 */		
 		byte[] received_password = getEncryptedPassword(
 				password, ui.getSalt());
 	
-		
 		/*
-		 * now, the passwords must match
+		 * now, we compare the given password and 
+		 * the user's password stored in the DB
 		 */
-		if(Arrays.equals(received_password, ui.getEncryptedPassword())) {
-			return true;
-		}
-		
-		return false;
+		return Arrays.equals(
+				received_password, 
+				ui.getEncryptedPassword());
 	}
 
+	/**
+	 * The register/2 method stores the user including its password
+	 * 
+	 * @param user  ... username
+	 * @param password ... password
+	 * 
+	 * @throws AuthenticationException
+	 */
 	public void register(String user, String password) 
 			throws AuthenticationException {
-		
-		if(null != this.entityManager.find(UserInformation.class, user)) {
+
+		UserInformation ui = this.entityManager.find(UserInformation.class, user);
+		if(null != ui) {
+			// if the user does exist already, then we throw an exception
 			throw new AuthenticationException("The user exists already!");
 		}
-		
 		
 		/*
 		 * hash & salt the password
 		 */
 		byte[] salt = generateSalt(); 
-		byte[] encrypted_password = getEncryptedPassword(
-				password, salt);
-		
+		byte[] encrypted_password = getEncryptedPassword(password, salt);
+
 		/*
 		 * then, we store username and password into 
 		 * out database
 		 */
 		this.persist(
-				new UserInformation(user, salt, encrypted_password));
+				new UserInformation(user, salt, encrypted_password));		
 	}
 	
+	/**
+	 * transaction-based persistence of a
+	 * UserInformation object
+	 * 
+	 * @param ui ... the UserInformation object
+	 */
 	private void persist(UserInformation ui) {
 		this.entityManager.getTransaction().begin();
 		this.entityManager.persist(ui);
 		this.entityManager.getTransaction().commit();
 	}
-	
 	
 	/**
 	 * Generates a hash from the supplied password and salt (see
@@ -165,6 +188,4 @@ public class Authenticator {
 		}
 		return null;
 	}
-	
-	
 }

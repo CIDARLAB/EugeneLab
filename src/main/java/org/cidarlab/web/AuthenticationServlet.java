@@ -9,6 +9,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.json.JSONObject;
 
@@ -40,10 +41,13 @@ public class AuthenticationServlet
         System.setProperty("org.slf4j.simpleLogger.showDateTime", "true");
         // set a system property such that Simple Logger will include timestamp in the given format
         System.setProperty("org.slf4j.simpleLogger.dateTimeFormat", "dd-MM-yy HH:mm:ss");
+
         // set minimum log level for SLF4J Simple Logger at warn
         System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "warn");
-	    
+        
+        LOGGER.warn("[AuthenticationServlet] loaded!");	    
 	}
+	
     /**
      * Handles the HTTP
      * <code>POST</code> method.
@@ -61,67 +65,88 @@ public class AuthenticationServlet
     	
         try {
         	
-        	String user = request.getParameter("user");
+        	// get the username and password parameter values 
+        	// from the request
+        	String command = request.getParameter("command");
+        	String username = request.getParameter("username");
         	String password = request.getParameter("password");
         	
-        	
         	/*
-        	 * SIGNUP
+        	 * SIGNUP Request
         	 */
-        	if(null != request.getParameter("signup")) {
+        	if("signup".equals(command)) {
         		
-        		LOGGER.warn("SIGNUP! user: " + user +", password: " + password);
+        		LOGGER.warn("SIGNUP! user: " + username +", password: " + password);
 
-            	this.auth.register(
-        				user, password);
-        		
+        		// register the user
+            	this.auth.register(username, password);
+            	
+            	// we automatically login the user, 
+            	// i.e. we do some session management 
+            	this.login(request, response, username);
+
+                // send the user to the eugenelab.html, i.e. the main IDE site
+//                response.sendRedirect("eugenelab.html");
+
             /*
-             * LOGIN
+             * LOGIN Request
              */
-        	} else if(null != request.getParameter("login")) {
+        	} else if("login".equals(command)) {
         		
-        		LOGGER.warn("LOGIN! user: " + user +", password: " + password);
+        		LOGGER.warn("LOGIN! user: " + username +", password: " + password);
 
-            	boolean bLogin = this.auth.login(user, password);
+        		// first, we check if the user exists and 
+        		// if the passwords match up
+        		boolean bLogin = this.auth.login(username, password);
         		
         		if(bLogin) {
             		LOGGER.warn("LOGIN VALID!");
-
-        			/*
-        			 * VALID AUTHENTICATION 
-        			 */
-	                Cookie authenticateCookie = new Cookie("eugenelab", "authenticated");
-	                Cookie userCookie = new Cookie("user", user);
-	                authenticateCookie.setMaxAge(60 * 60); //cookie lasts for an hour
-	                response.addCookie(authenticateCookie);
-	                response.addCookie(userCookie);
-	                response.sendRedirect("eugenelab.html");
-
-// do we need to set a cookie if authentication failed?	                
-//        		} else {
-//        			
-//        			/*
-//        			 * INVALID AUTHENTICATION 
-//        			 */
-//	                Cookie authenticateCookie = new Cookie("eugenelab", "failed");
-//	                authenticateCookie.setMaxAge(60 * 60); //cookie lasts for an hour
-//	                response.addCookie(authenticateCookie);
-//	                response.sendRedirect("login.html");
+            		
+            		// login the user including session management
+                	this.login(request, response, username);
+                	
+                    // send the user to the eugenelab.html, i.e. the main IDE site
+//                    response.sendRedirect("eugenelab.html");
         		}
         		
         	/*
-        	 *  LOGOUT
+        	 *  LOGOUT Request
         	 */
-        	} else if(null != request.getParameter("logout")) {
+        	} else if("logout".equals(command)) {
         		
+        		// TODO:
+        		LOGGER.warn("LOGOUT");
+        		
+        		HttpSession session = request.getSession(false);
+        		if (session != null) {
+        			// the session expires immediately
+        			session.setMaxInactiveInterval(1);
+        			// we remove the user information
+        			session.removeAttribute("user");
+        			// and invalidate the session
+        		    session.invalidate();
+        		    
+//        		    response.sendRedirect("index.html");
+        		}
+        		
+        	/*
+        	 * Invalid Request	
+        	 */
             } else {
-            	LOGGER.warn("Invalid login! user: " + user + ", password: " + password);
+            	LOGGER.warn("Invalid login! user: " + username + ", password: " + password);
+            	throw new AuthenticationException("Invalid Request!");
             }
+        	
+        	jsonResponse.put("status", "good");
+        	
         } catch(Exception e) {
         	
+    		LOGGER.warn(e.getLocalizedMessage());
+    		
     		jsonResponse.put("status", "exception");
-    		jsonResponse.put("result", e.toString());
-    		LOGGER.warn(e.toString());
+    		jsonResponse.put("result", e.getLocalizedMessage());
+
+		    //response.sendRedirect("index.html");
         } 
 
         /*
@@ -135,6 +160,46 @@ public class AuthenticationServlet
     	out.flush();
         out.close();
     }
+    
+    private void login(HttpServletRequest request, HttpServletResponse response, String user) {
+
+		/*-------------------------------
+		 * VALID AUTHENTICATION 
+		 *-------------------------------*/  
+		
+		// we create a session
+		HttpSession session = request.getSession();
+		
+		// put the username into it
+        session.setAttribute("user", user);
+
+        // a session expires after 60 mins
+        session.setMaxInactiveInterval(60 * 60);
+        
+        // also, we set two cookies
+        // - the first cookie indicates of the user is authenticated
+        // - the second cookie contains user information
+        Cookie authenticateCookie = new Cookie("eugenelab", "authenticated");
+        Cookie userCookie = new Cookie("user", user);
+        authenticateCookie.setMaxAge(60 * 60); //cookie lasts for an hour
+        
+        
+        // add both cookies to the response
+        response.addCookie(authenticateCookie);
+        response.addCookie(userCookie);
+        
+//do we need to set a cookie if authentication failed?	                
+//	} else {
+//		
+//		/*
+//		 * INVALID AUTHENTICATION 
+//		 */
+//        Cookie authenticateCookie = new Cookie("eugenelab", "failed");
+//        authenticateCookie.setMaxAge(60 * 60); //cookie lasts for an hour
+//        response.addCookie(authenticateCookie);
+//        response.sendRedirect("login.html");
+    }
+    	
 
 
     /**

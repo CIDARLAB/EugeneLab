@@ -9,6 +9,7 @@
         	<param-name>IMAGE_DIRECTORY</param-name>
         	<param-value>/src/main/webapp/tmp</param-value>
         </init-param>
+        <load-on-startup>1</load-on-startup>
     </servlet>
     <servlet-mapping>
         <servlet-name>EugeneLabServlet</servlet-name>
@@ -19,6 +20,7 @@
     <servlet>
         <servlet-name>AuthenticationServlet</servlet-name>
         <servlet-class>org.cidarlab.web.AuthenticationServlet</servlet-class>
+        <load-on-startup>2</load-on-startup>
     </servlet>
     <servlet-mapping>
         <servlet-name>AuthenticationServlet</servlet-name>

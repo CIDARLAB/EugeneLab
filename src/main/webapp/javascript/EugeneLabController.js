@@ -212,8 +212,10 @@ $(document).ready(function() {
     //draw the file table tree based on users file contents
     var loadFileTree = function() {
         $("#filesArea").html("");
+        
         $.get("EugeneLabServlet", {"command": "getFileList"}, function(data) {
             var children = data;
+            
             $("#filesArea").dynatree({
                 onActivate: function(node) {
                     // A DynaTreeNode object is passed to the activation handler
@@ -308,6 +310,8 @@ $(document).ready(function() {
         return currentFileExtension;
     };
 
+    var currentFile = '';
+    
     var loadFile = function() {
         var node = $("#filesArea").dynatree("getActiveNode");
         if (node.data.isFolder) {
@@ -315,7 +319,10 @@ $(document).ready(function() {
         } else {
             var fileName = node.data.title;
             setCurrentFileExtension(getActiveNodeExtension());
-            $('#fileName').text(fileName);
+            $('#fileName').html('<h5>File: '+fileName+'</h5>');
+            $('#hint').html('');
+            currentFile = fileName;
+
             var parent = node.getParent();
             while (parent.data.title !== null) {
                 fileName = parent.data.title + "/" + fileName;
@@ -396,6 +403,21 @@ $(document).ready(function() {
         }
     });
 
+    $('#btnSave').click(function() {
+    	
+    	if(currentFile !== '') {
+	        var command = {"command": "saveFile", "filename": currentFile, "content": editor.getValue()};
+	        $.post("EugeneLabServlet", command, function(response) {
+	        	if(response['status'] === 'good') {
+	        		$('#saveInfo').html('saved');
+	        	} else {
+	        		$('#saveInfo').html(response['result']);
+	        	}
+	        });
+    	} else {
+    		alert('Please create a new File first!');
+    	}
+    });
 
 
     $('#deleteModalButton').click(function() {
@@ -500,9 +522,9 @@ $(document).ready(function() {
     var timer = setInterval(updateProgressbar, 10);
     
 
-    //$('#runButton') jquery syntax
+    //$('#btnRun') jquery syntax
     //assigns various functions to the run button when clicked
-    $('#runButton').click(function() {
+    $('#btnRun').click(function() {
         //var outputMessageString = '<p> Status: </p>';
         //$('#outputMessage').html(outputMessageString);
         $('#outputArea').collapse('show');
@@ -549,7 +571,7 @@ $(document).ready(function() {
         } else {
             //Clicking run button sends current text to server
             //May want to modify to send file or collection of files to server(if Eugene program spans multiple files)
-            $('#runButton').attr("disabled", "disabled");
+            $('#btnRun').attr("disabled", "disabled");
             var command = {"script": editor.getValue(), "command": "execute"};
             
             /*** WE ONLY SUPPORT EUGENE SCRIPTS 
@@ -570,7 +592,7 @@ $(document).ready(function() {
             
             $.post("EugeneLabServlet", command, function(response) {
             	
-            	$('#runButton').removeAttr("disabled");
+            	$('#btnRun').removeAttr("disabled");
 
             	//alert(response["status"]);
                 if ("good" === response["status"]) {

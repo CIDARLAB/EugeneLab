@@ -1,6 +1,27 @@
 
 $(document).ready(function() {
 	
+	// for the eugenelab.html web site, 
+	// we disable all File buttons if the user is not logged in,
+	// i.e. there's no cookie set
+	if(document.location.pathname == '/EugeneLab/eugenelab.html') {
+		var cookie = getCookie("eugenelab");
+		if(cookie === null || cookie === '') {
+		    $('#btnNewFile').attr("disabled", "disabled");
+		    $('#btnNewFile').prop("disabled", true);
+		    
+		    $('#btnUploadFile').attr("disabled", "disabled");
+		    $('#btnUploadFile').prop("disabled", true);
+		
+		    $('#btnDeleteFile').attr("disabled", "disabled");
+		    $('#btnDeleteFile').prop("disabled", true);
+
+		    $('#btnSave').attr("disabled", "disabled");
+		    $('#btnSave').prop("disabled", true);
+
+		}
+	}
+	
 	function setCookie(c_name, value, exdays) {
 		var exdate = new Date();
 		exdate.setDate(exdate.getDate() + exdays);
@@ -25,6 +46,7 @@ $(document).ready(function() {
 			}
 			c_value = unescape(c_value.substring(c_start, c_end));
 		}
+
 		return c_value;
 	}
 	
@@ -38,22 +60,96 @@ $(document).ready(function() {
 	if (getCookie("eugenelab") !== "authenticated") {
 		deleteCookie("user");
 	}
-		
+	
 	if (getCookie("eugenelab") === "authenticated") {
-		$('#loginArea').html('<p class="pull-right" style="margin-top:10px">You are logged in as <strong>' + getCookie("user") + '</strong> <a id="logout">Log Out</a></p>');
+		$('#loginArea').html('<div id="loginArea" class="navbar-form pull-right">'+
+						'You are logged in as <strong>' + getCookie("user") + '</strong>&nbsp;&nbsp;&nbsp;&nbsp;'+
+						'<button id="btnLogout" class="btn btn-primary btn-warning">Logout</button>');
 		
-		$('#logout').click(function() {
-			
-			// not sure if we should tell the servlet to logout
-			// just deleting the cookies might be enough
-			//$.get("AuthenticationServlet", {"command": "logout"}, function() {
-				deleteCookie("eugenelab");
-				deleteCookie("user");
-				window.location.replace("index.html");
-			//});
-		});
+		if(document.location.pathname == '/EugeneLab/index.html') {
+			// disable the "Try it for free!" button
+			$('#tryIt').html('');
+		}
 	} else if (getCookie("authenticate") === "failed") {
-		window.location.replace("login.html");
+		window.location.replace("index.html");
 	}
+
+	
+	//-----------------------------------------------
+	// AUTHENTICATION
+	//-----------------------------------------------
+	
+	// SIGNUP Button
+	$('#btnSignUp').click(function() {
+		var username = $('#signup_username').val();
+		var jsonRequest =  {"command": "signup", 
+							"username": username, 
+							"password": $('#signup_password').val()};
+		
+		$.post("AuthenticationServlet", jsonRequest, function(response) {
+			
+			// if there was an error, then we display the error
+			if(response['status'] === 'exception') {			
+				$('#signupError').html('<div class="alert alert-danger">' + response['result'] + '</div>');
+			} else {
+				$('#signupError').html('<div class="alert alert-success"> Success! </div>');
+
+				// set the cookie
+				setCookie("user", username, 1);
+				setCookie("eugenelab", "authenticated", 1);
+				
+				window.location.replace('eugenelab.html');
+			}
+		});
+	});
+	
+	// LOGIN button
+	$('#btnLogin').click(function() {
+		var username = $('#login_username').val();
+		var jsonRequest =  {"command": "login", 
+							"username": username, 
+							"password": $('#login_password').val()};
+		
+		$.post("AuthenticationServlet", jsonRequest, function(response) {
+			
+			// if there was an error, then we display the error
+			if(response['status'] === 'exception') {			
+				$('#loginError').html('<div class="alert alert-danger">' + response['result'] + '</div>');
+			} else {
+				$('#loginError').html('');
+
+				// set the cookie
+				setCookie("user", username, 1);
+				setCookie("eugenelab", "authenticated", 1);
+
+				//window.location.replace('eugenelab.html');
+				$('#loginArea').html('<div id="loginArea" class="navbar-form pull-right">'+
+						'You are logged in as <strong>' + getCookie("user") + '</strong>&nbsp;&nbsp;&nbsp;&nbsp;'+
+						'<button id="btnLogout" class="btn btn-primary btn-warning">Logout</button>');
+				
+				//<p class="pull-right" style="margin-top:10px">You are logged in as <strong>' + getCookie("user") + '</strong> <a id="logout">Log Out</a></p>');
+			}
+		});
+	});
+	
+	// LOGOUT Button
+	$('#btnLogout').click(function() {
+		
+		var user = getCookie("user");
+		var jsonRequest =  {"command": "logout", 
+				"username":getCookie("user")};
+		$.post("AuthenticationServlet", jsonRequest, function(response) {
+			// if there was an error, then we display the error
+			if(response['status'] === 'exception') {			
+				$('#loginError').html('<div class="alert alert-danger">' + response['result'] + '</div>');
+			} else {
+				deleteCookie("user");
+				deleteCookie("eugenelab");
+				
+				window.location.replace('index.html');
+			}
+		});
+	});
+	
 	
 });

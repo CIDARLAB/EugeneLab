@@ -7,9 +7,12 @@
         <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
         <link href="css/bootstrap-responsive.min.css" rel="stylesheet" media="screen">
     </head>
+    
+    <!--  
     <script src="documentationFiles/jquery-1.11.0.min.js"> </script>
     <script src = "documentationFiles/controller.js"> </script>
-
+	-->
+	
     <body data-spy="scroll" data-target="#sidebar" >
 
         <div class="navbar navbar-fixed-top">
@@ -20,12 +23,13 @@
                     <li><a href="documentation.html">How-To</a></li>
                     <li><a href="contact.html">Contact</a></li>
                 </ul>
-                <div id="loginArea">
-                	<form id="loginForm" class="navbar-form pull-right" action="AuthenticationServlet" method="POST">
-                        <input name="user" type="text" class="span2" placeholder="Login">
-                        <input name="password" type="password" class="span2" placeholder="Password">
-                        <input type="submit" value="Login" class="btn"/>
-                    </form>
+
+				<!-- Login -->                
+                <div id="loginArea" class="navbar-form pull-right">
+	                <input id="login_username" type="text" class="span2" placeholder="Login">
+	                <input id="login_password" type="password" class="span2" placeholder="Password">
+	                <input id="btnLogin" type="submit" value="Login" class="btn btn-primary"/>
+                	<div id="loginError"></div>                
                 </div>
             </div>
         </div>

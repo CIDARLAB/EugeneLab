@@ -370,7 +370,7 @@ $(document).ready(function() {
         	
         	var folder = "";
             var node = getActiveNode();
-            alert(node);
+
             if(node !== null) {
             	if(node.hasChildren() === true) {
             		folder = node;
@@ -379,14 +379,13 @@ $(document).ready(function() {
             	}
             }
             
-            var command = {"command": "createFile", "filename":filename, "folder": folder};
+            var command = {"command": "createFile", "filename":filename};
             $.post("EugeneLabServlet", command, function(response) {
-            	if(response["exception"] !== null) {
-            		alert(response["exception"]);
+            	if(response["status"] === "exception") {
+            		$('#outputMessage').html("<font color=red>Exception: " + response['result'] + "</font>");
             	} else {
-            		// if everything went fine, 
-            		// add the file name to the file tree
-            		//activeFolder.addChild({title: newFileName});
+                    //refresh files
+                    loadFileTree();
             	}
             });
         } else if ($('a.dynatree-title:contains("' + filename + '")').length === 0) {
@@ -409,9 +408,12 @@ $(document).ready(function() {
 	        var command = {"command": "saveFile", "filename": currentFile, "content": editor.getValue()};
 	        $.post("EugeneLabServlet", command, function(response) {
 	        	if(response['status'] === 'good') {
-	        		$('#saveInfo').html('saved');
+	        		$('#info').html('<div class="alert alert-success" role="alert">Saved!</div>');
+	        		setTimeout(function() {
+	        			  $("#info").html('');
+	        		}, 2000);
 	        	} else {
-	        		$('#saveInfo').html(response['result']);
+	        		$('#info').html(response['result']);
 	        	}
 	        });
     	} else {
@@ -432,16 +434,37 @@ $(document).ready(function() {
     $('#yesDeleteFileButton').click(function() {
         
         var activeFolder = getActiveNodeExtension();
-    	var node = $("#filesArea").dynatree("getActiveNode");
+    	var node = getActiveNodeExtension();
         
-        var command = {"command": "deleteFile", "filename":node, "folder": activeFolder};
+    	var command;
+    	if(node !== null) {
+        	command = {"command": "deleteFile", "filename": node};
+    	} else if(currentFile === null) {
+        	command = {"command": "deleteFile", "filename": node};
+    	} else {
+        	command = {"command": "deleteFile", "filename": currentFile};
+    	}
+    	
         $.post("EugeneLabServlet", command, function(response) {
-        	if(response["exception"] !== null) {
-        		alert(response["exception"]);
+        	if(response["status"] === "exception") {
+        		$('#outputMessage').html("<font color=red>Exception: " + response['result'] + "</font>");
         	} else {
         		// if everything went fine, 
-        		// then remove the active node from the file tree
-        		node.remove();
+        		// then remove the active node from the file tree        		
+        		$('#info').html('<div class="alert alert-success" role="alert">Deleted!</div>');
+        		setTimeout(function() {
+        			  $("#info").html('');
+        		}, 2000);
+        		
+        		// reload the file tree
+                loadFileTree();
+                
+                // also empty the editor area if the file currently edited
+                // matches the deleted file
+                if(currentFile !== null) {
+                	editor.setValue('');
+                    $('#fileName').html('');
+                }
         	}
         });
         
@@ -683,7 +706,7 @@ $(document).ready(function() {
                 else if ("exception" === response["status"]) {
                 	
                 	// print the exception
-                    $('#outputMessage').html("<font color=red>Exception: " + response["reason"] + "</font>");
+                    $('#outputMessage').html("<font color=red>Exception: " + response['result'] + "</font>");
                     
                     // delete the content of all other output areas
                     $('#outputImageArea').html('');

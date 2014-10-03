@@ -220,66 +220,30 @@ public class EugeneLabServlet
     	
     	try {
 
-    		// retrieve the username from the session information
-            String username = this.getUsername(request.getCookies());
-
     		if (ServletFileUpload.isMultipartContent(request)) {
 
-	        	/*
-	        	 * FILE UPLOAD
-	        	 */
-            	if(null == this.factory) {
-            		this.factory = new DiskFileItemFactory();
-            		ServletContext servletContext = this.getServletConfig().getServletContext();
-            		File repository = (File) servletContext.getAttribute("javax.servlet.context.tempdir");
-            		factory.setRepository(repository);
-            	}
-            	
-            	ServletFileUpload uploadHandler = new ServletFileUpload(this.factory);
-                
-            	/*
-            	 * check if the user's directory exists already
-            	 */
-            	String uploadFilePath = Paths.get(this.getServletContext().getRealPath(""), USER_HOMES, username).toString();
-                File userDir = new File(uploadFilePath);
-                if(!userDir.exists()) {
-                	userDir.mkdirs();
-                }
-                
-                /*
-                 * store the file in the user's directory
-                 */
-                List<FileItem> items = uploadHandler.parseRequest(request);
-                List<File> toLoad = new ArrayList<File>();
-                for (FileItem item : items) {
-                    File file;
-                    if (!item.isFormField()) {
-                        String fileName = item.getName();
-                        
-                        if (fileName.equals("")) {
-                            LOGGER.warn("You forgot to choose a file.");
-                        }
-
-                        if (fileName.lastIndexOf("\\") >= 0) {
-                            file = new File(uploadFilePath + "/" + fileName.substring(fileName.lastIndexOf("\\")));
-                        } else {
-                            file = new File(uploadFilePath + "/" + fileName.substring(fileName.lastIndexOf("\\") + 1));
-                        }
-                        
-                        item.write(file);
-                        toLoad.add(file);
-                    }
-                }
+    			this.uploadFile(request);
+                response.sendRedirect("eugenelab.html");
                 
 	        } else {
+	    		// retrieve the username from the session information
+	            String username = this.getUsername(request.getCookies());
+	            // get the command
 	        	String command = request.getParameter("command");
 
+	        	/*---------------------------------
+	        	 *  FILE HANDLING requests
+	        	 *--------------------------------*/
 	        	if("createFile".equalsIgnoreCase(command)) {
 	        		this.createFile(username, request.getParameter("filename"));
 	        	} else if("saveFile".equalsIgnoreCase(command)) {
 	        		this.saveFile(username, request.getParameter("filename"), request.getParameter("content"));
 	        	} else if("deleteFile".equalsIgnoreCase(command)) {
 	        		this.deleteFile(username, request.getParameter("filename"));
+	        	
+		        /*---------------------------------
+		         *  EUGENE-related requests
+		         *--------------------------------*/	        	
 	        	} else if("execute".equalsIgnoreCase(command)) {
 	        		jsonResponse = this.executeEugene(request.getParameter("script"));
 	        	} else {
@@ -358,7 +322,74 @@ public class EugeneLabServlet
     private String loadFile(String username, String fileName) 
     		throws Exception {
        	return new String(Files.readAllBytes(
-       						Paths.get(this.getServletContext().getRealPath(""), USER_HOMES, username, fileName)));
+       						Paths.get(
+       								this.getServletContext().getRealPath(""), 
+       								USER_HOMES, 
+       								username, 
+       								fileName)));
+    }
+    
+    /**
+     * 
+     * @param request
+     * @throws Exception
+     */
+    private void uploadFile(HttpServletRequest request) 
+    	throws Exception {
+    	
+    	// get the current user
+        String username = this.getUsername(request.getCookies());
+    	
+    	/*
+    	 * FILE UPLOAD
+    	 */
+    	if(null == this.factory) {
+    		this.factory = new DiskFileItemFactory();
+    		ServletContext servletContext = this.getServletConfig().getServletContext();
+    		File repository = (File) servletContext.getAttribute("javax.servlet.context.tempdir");
+    		factory.setRepository(repository);
+    	}
+    	
+    	ServletFileUpload uploadHandler = new ServletFileUpload(this.factory);
+        
+    	/*
+    	 * check if the user's directory exists already
+    	 */
+    	String uploadFilePath = Paths.get(
+    			this.getServletContext().getRealPath(""), 
+    			USER_HOMES, 
+    			username).toString();
+        File userDir = new File(uploadFilePath);
+        if(!userDir.exists()) {
+        	userDir.mkdirs();
+        }
+        
+        /*
+         * store the file in the user's directory
+         */
+        List<FileItem> items = uploadHandler.parseRequest(request);
+        List<File> toLoad = new ArrayList<File>();
+        for (FileItem item : items) {
+            File file;
+            if (!item.isFormField()) {
+                String fileName = item.getName();
+                
+                if (fileName.equals("")) {
+                    LOGGER.warn("You forgot to choose a file.");
+                }
+
+                if (fileName.lastIndexOf("\\") >= 0) {
+                    file = new File(uploadFilePath + "/" + 
+                    		fileName.substring(fileName.lastIndexOf("\\")));
+                } else {
+                    file = new File(uploadFilePath + "/" + 
+                    		fileName.substring(fileName.lastIndexOf("\\") + 1));
+                }
+                
+                item.write(file);
+                toLoad.add(file);
+            }
+        }
     }
     
     /**
@@ -387,6 +418,8 @@ public class EugeneLabServlet
      */
     private void deleteFile(String username, String filename) 
     		throws IOException {
+    	
+    	LOGGER.warn("[deleteFile] -> " + username+", "+filename);
     	
     	Files.deleteIfExists(
     			Paths.get(

@@ -22,6 +22,7 @@ $(document).ready(function() {
 
 		    $('#btnSave').attr("disabled", "disabled");
 		    $('#btnSave').prop("disabled", true);
+		    
 		} else {
 			// the user is logged in, 
 			// enable the buttons

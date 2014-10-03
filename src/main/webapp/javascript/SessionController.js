@@ -6,6 +6,10 @@ $(document).ready(function() {
 	// i.e. there's no cookie set
 	if(document.location.pathname == '/EugeneLab/eugenelab.html') {
 		var cookie = getCookie("eugenelab");
+		
+		// the user is not logged in
+		// -> default user
+		// disable buttons
 		if(cookie === null || cookie === '') {
 		    $('#btnNewFile').attr("disabled", "disabled");
 		    $('#btnNewFile').prop("disabled", true);
@@ -18,7 +22,20 @@ $(document).ready(function() {
 
 		    $('#btnSave').attr("disabled", "disabled");
 		    $('#btnSave').prop("disabled", true);
+		} else {
+			// the user is logged in, 
+			// enable the buttons
+		    $('#btnNewFile').removeAttr("disabled");
+		    $('#btnNewFile').prop("disabled", false);
+		    
+		    $('#btnUploadFile').removeAttr("disabled");
+		    $('#btnUploadFile').prop("disabled", false);
+		
+		    $('#btnDeleteFile').removeAttr("disabled");
+		    $('#btnDeleteFile').prop("disabled", false);
 
+		    $('#btnSave').removeAttr("disabled");
+		    $('#btnSave').prop("disabled", false);
 		}
 	}
 	
@@ -127,6 +144,7 @@ $(document).ready(function() {
 						'You are logged in as <strong>' + getCookie("user") + '</strong>&nbsp;&nbsp;&nbsp;&nbsp;'+
 						'<button id="btnLogout" class="btn btn-primary btn-warning">Logout</button>');
 				
+				location.reload();
 				//<p class="pull-right" style="margin-top:10px">You are logged in as <strong>' + getCookie("user") + '</strong> <a id="logout">Log Out</a></p>');
 			}
 		});

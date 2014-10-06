@@ -141,7 +141,7 @@ public class EugeneLabServlet
         // retrieve the username from the session information
         String username = this.getUsername(request.getCookies());
         
-        LOGGER.warn("[processGetRequest] -> " + command + ", " + username);
+//        LOGGER.warn("[processGetRequest] -> " + command + ", " + username);
         
         try {
             if ("getFileList".equalsIgnoreCase(command)) {
@@ -159,8 +159,6 @@ public class EugeneLabServlet
                 String fileName = request.getParameter("fileName");
                 String toReturn = loadFile(username, fileName);
                 out.write(toReturn);
-            } else if (command.equals("test")) {
-                out.write("{\"response\":\"test response\"}");
             }
         } catch (Exception e) {
             StringWriter stringWriter = new StringWriter();
@@ -231,6 +229,9 @@ public class EugeneLabServlet
 	            // get the command
 	        	String command = request.getParameter("command");
 
+	        	
+	        	LOGGER.warn("[processPostRequest] -> " + command);
+	        	
 	        	/*---------------------------------
 	        	 *  FILE HANDLING requests
 	        	 *--------------------------------*/
@@ -451,19 +452,20 @@ public class EugeneLabServlet
     	try {
     		Collection<Component> components = this.eugene.executeScript(script);
     		
-    		/*
-    		 * process the collection
-    		 */
-    		EugeneCollection col = new EugeneCollection(UUID.randomUUID().toString());
-    		col.getElements().addAll(components);
-
-    		/*
-    		 * visualize the components using Pigeon
-    		 * (i.e. SBOL Visual compliant symbols)
-    		 */
-    		URI pigeon = this.pigeonize(col);
-    		
-    		jsonResponse.put("pigeon-uri", pigeon);
+    		// visualize the outcome using SBOL visual compliant glyphs
+    		// therefore, we use Pigeon
+    		if(null != components && !components.isEmpty()) {
+	
+	    		/*
+	    		 * pigeonize the collection and 
+	    		 * return the URI of the generated pigeon image
+	    		 */
+	    		EugeneCollection col = new EugeneCollection(UUID.randomUUID().toString());
+	    		col.getElements().addAll(components);
+	    		
+	    		URI pigeon = this.pigeonize(col);	    		
+	    		jsonResponse.put("pigeon-uri", pigeon);
+    		}
     		
     	} catch(Exception e) {
     		throw new EugeneException(e.toString());

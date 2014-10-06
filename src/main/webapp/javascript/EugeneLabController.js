@@ -617,64 +617,55 @@ $(document).ready(function() {
             	
             	$('#btnRun').removeAttr("disabled");
 
-            	//alert(response["status"]);
-                if ("good" === response["status"]) {
-                    
-                	// clear the output message box
-                    $('#outputMessage').html('');
+            	// clear the output message box
+                $('#outputMessage').html('');
 
-                    /*
+                /*
+                 * a server-side exception occurred 
+                 */
+                if ("exception" === response["status"]) {                	
+                	// print the exception
+                    $('#outputMessage').html("<font color=red>Exception: " + response['result'] + "</font>");
+                    
+                    // delete the content of all other output areas
+                    $('#outputImageArea').html('');
+                    $('#outputListArea').html('');
+                    
+                /*
+                 * everything went well on the server-side
+                 */    
+                } else if ("good" === response["status"]) {
+                    
+                	/*-----------------------
                      * PIGEON
-                     */                	
-                    if (response["pigeon-uri"] !== undefined) {
-//                        var pigeonLinks = [];
+                     *-----------------------*/ 
+                	if (response["pigeon-uri"] === undefined) {
+                	
+                		$('#outputImageArea').html('');
+                	
+                	} else if (response["pigeon-uri"] !== undefined) {
+
                         var imageHeader = '<div id="outputCarousel" class="slide carousel"><ol class="carousel-indicators">';
                         var images = '<div class="carousel-inner">';
                         var imageCount = 0;
                         
-//                        $.each(response["results"], function() {
-//                            pigeonLinks.push(this["pigeon-uri"]);
-                            
-                            var active = "";
-                            if (imageCount === 0) {
-                                active = "active";
-                            }
-                            imageHeader = imageHeader + '<li class="' + active + '" data-target="#outputCarousel" +data-slide-to="' + imageCount + '"></li>';
-                            images = images + '<div class="item ' + active + '"><img src="' + response["pigeon-uri"] + '"/><div class="carousel-caption"><h4>' + this["name"] + '</h4></div></div>';
-                            imageCount++;
-//                        }
-//                        );
-                        //render images
+                        var active = "";
+                        if (imageCount === 0) {
+                            active = "active";
+                        }
+                        imageHeader = imageHeader + '<li class="' + active + '" data-target="#outputCarousel" +data-slide-to="' + imageCount + '"></li>';
+                        images = images + '<div class="item ' + active + '"><img src="' + response["pigeon-uri"] + '"/><div class="carousel-caption"><h4>' + this["name"] + '</h4></div></div>';
+                        imageCount++;
+
                         imageHeader = imageHeader + '</ol>';
                         images = images + '</div><a class="carousel-control left" href="#outputCarousel" data-slide="prev">&lsaquo;</a> <a class="carousel-control right" href="#outputCarousel" data-slide="next">&rsaquo;</a></div>';
                         var slideShow = imageHeader + images;
                         
                         $('#outputImageArea').html('<img src=".' + response["pigeon-uri"] + '"/>');
-                        
-                        //$('#outputImageArea').html(slideShow);
-                        //$('#outputCarousel').carousel({interval: 5000});
-                        //render new parts list
+
                         var toAppend = '<table class="table table-bordered table-hover" id="outputList"><thead><tr><th>Name</th><th>Type</th><th></th></tr></thead><tbody>';
-                        //handle each device
                         var newParts = {};
 
-/*                        
-                        $.each(response["results"], function() {
-                            if (newParts[this["name"]] !== "added") {
-                                _newParts[this["name"]] = this;
-                                toAppend = toAppend + '<tr><td>' + this["name"] + '</td><td>' + this["type"] + '</td><td><button class="btn btn-success savePartButton">Save</button></td></tr>';
-                                //handle each component
-                                $.each(this["components"], function() {
-                                    if (this["type"] !== undefined && newParts[this["name"]] !== "added") {
-                                        _newParts[this["name"]] = this;
-                                        toAppend = toAppend + '<tr><td>' + this["name"] + '</td><td>' + this["type"] + '</td><td><button class="btn btn-success savePartButton">Save</button></td></tr>';
-                                        newParts[this["name"]] = "added";
-                                    }
-                                });
-                                newParts[this["name"]] = "added";
-                            }
-                        });
- */
                         toAppend = toAppend + "</tbody></table>";
                         $('#outputListArea').html(toAppend);
                         $("#outputList").dataTable({
@@ -701,17 +692,7 @@ $(document).ready(function() {
                         });
                         $('#outputArea').collapse('show');
                         drawPartsList();
-                    }
-                }
-                else if ("exception" === response["status"]) {
-                	
-                	// print the exception
-                    $('#outputMessage').html("<font color=red>Exception: " + response['result'] + "</font>");
-                    
-                    // delete the content of all other output areas
-                    $('#outputImageArea').html('');
-                    $('#outputListArea').html('');
-
+                	}
                 }
             });
         }

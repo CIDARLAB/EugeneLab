@@ -382,7 +382,7 @@ $(document).ready(function() {
             var command = {"command": "createFile", "filename":filename};
             $.post("EugeneLabServlet", command, function(response) {
             	if(response["status"] === "exception") {
-            		$('#outputMessage').html("<font color=red>Exception: " + response['result'] + "</font>");
+            		$("#outputConsoleArea").html("<font color=red>Exception: " + response['result'] + "</font>");
             	} else {
                     //refresh files
                     loadFileTree();
@@ -395,13 +395,9 @@ $(document).ready(function() {
     });
     
     
-    $('#saveButton').click(function() {
-        var newFileName = $('#fileName').text();
-        if ($('a.dynatree-title:contains("' + newFileName + '")').length === 0) {
-            saveFile(newFileName);
-        }
-    });
-
+    /*----------------------------------
+     * "SAVE FILE" button
+     *----------------------------------*/
     $('#btnSave').click(function() {
     	
     	if(currentFile !== '') {
@@ -447,7 +443,7 @@ $(document).ready(function() {
     	
         $.post("EugeneLabServlet", command, function(response) {
         	if(response["status"] === "exception") {
-        		$('#outputMessage').html("<font color=red>Exception: " + response['result'] + "</font>");
+        		$('#outputConsoleArea').html("<font color=red>Exception: " + response['result'] + "</font>");
         	} else {
         		// if everything went fine, 
         		// then remove the active node from the file tree        		
@@ -545,13 +541,13 @@ $(document).ready(function() {
     var timer = setInterval(updateProgressbar, 10);
     
 
-    //$('#btnRun') jquery syntax
-    //assigns various functions to the run button when clicked
+    /*----------------------------------
+     * "RUN" button
+     *----------------------------------*/
     $('#btnRun').click(function() {
-        //var outputMessageString = '<p> Status: </p>';
-        //$('#outputMessage').html(outputMessageString);
-        $('#outputArea').collapse('show');
 
+        var script = editor.getValue();
+        
         /*
          * start the timer
          */
@@ -591,11 +587,16 @@ $(document).ready(function() {
                 alert(response);
             });
             ***/
-        } else {
+        } else if(script !== '' && script !== undefined) {
+        	
+            //var outputMessageString = '<p> Status: </p>';
+            //$('#outputConsoleArea').html(outputMessageString);
+            $('#outputArea').collapse('show');
+
             //Clicking run button sends current text to server
             //May want to modify to send file or collection of files to server(if Eugene program spans multiple files)
             $('#btnRun').attr("disabled", "disabled");
-            var command = {"script": editor.getValue(), "command": "execute"};
+            var command = {"script": script, "command": "execute"};
             
             /*** WE ONLY SUPPORT EUGENE SCRIPTS 
             // Get file type to determine command
@@ -618,33 +619,41 @@ $(document).ready(function() {
             	$('#btnRun').removeAttr("disabled");
 
             	// clear the output message box
-                $('#outputMessage').html('');
+                $('#outputConsoleArea').html('');
+        		$('#outputImageArea').html('');
+        		$('#outputTextualArea').html('');
 
                 /*
                  * a server-side exception occurred 
                  */
                 if ("exception" === response["status"]) {                	
                 	// print the exception
-                	$("#outputMessage").attr("class", "alert alert-danger");
-                    $('#outputMessage').html("Exception: " + response['result'] + "");
+            		$('#console').addClass("active");
+                	$("#outputConsoleArea").attr("class", "alert alert-danger");
+                    $("#outputConsoleArea").html("Exception: " + response['result'] + "");
                     
                     // delete the content of all other output areas
+            		$('#image').removeClass("active");
                     $('#outputImageArea').html('');
+            		$('#outputImageTab').removeClass("class", "active");
+
+            		$('#list').removeClass("active");
                     $('#outputListArea').html('');
+            		$('#outputListTab').removeClass("class", "active");
                     
                 /*
                  * everything went well on the server-side
                  */    
                 } else if ("good" === response["status"]) {
                     
-                	/*-----------------------
-                     * PIGEON
-                     *-----------------------*/ 
+                	/*---------------------------
+                     * PIGEON - #outputImageArea
+                     *---------------------------*/ 
                 	if (response["pigeon-uri"] === undefined) {
                 	
                 		$('#outputImageArea').html('');
                 	
-                	} else if (response["pigeon-uri"] !== undefined) {
+                	} else {
 
                         var imageHeader = '<div id="outputCarousel" class="slide carousel"><ol class="carousel-indicators">';
                         var images = '<div class="carousel-inner">';
@@ -664,6 +673,7 @@ $(document).ready(function() {
                         
                         $('#outputImageArea').html('<img src=".' + response["pigeon-uri"] + '"/>');
 
+                        /***
                         var toAppend = '<table class="table table-bordered table-hover" id="outputList"><thead><tr><th>Name</th><th>Type</th><th></th></tr></thead><tbody>';
                         var newParts = {};
 
@@ -693,15 +703,38 @@ $(document).ready(function() {
                         });
                         $('#outputArea').collapse('show');
                         drawPartsList();
+                        ***/
                 	}
                 	
                 	/*
                 	 * OUTPUT messages
+                	 * 
+                	 * we activate the console iff 
+                	 * there are print outs
+                	 * 
+                	 * otherwise, we active the images/visual tab
                 	 */
-                	if(response['eugene-output'] !== undefined) {
-                		// print the exception
-                    	$("#outputMessage").attr("class", "alert alert-success");
-                		$('#outputMessage').html(response['eugene-output']);
+                	if(response['eugene-output'] !== undefined &&
+                			response['eugene-output'] !== '') {
+
+                		// deactivate the image tab
+                		$('#image').removeClass("active");
+                		$('#outputImageArea').removeClass("active");
+                		$('#outputImageTab').removeClass("active");
+                		
+                		// deactivate the textual tab
+                		$('#list').removeClass("active");
+                		$('#outputListArea').removeClass("active");
+                		$('#outputListTab').removeClass("active");
+
+
+                    	// active the console tab in order to
+                		// display the output in the console
+                		$('#console').addClass("active");
+                		$('#outputConsoleArea').html(response['eugene-output']);
+                    	$("#outputConsoleArea").attr("class", "alert alert-success");
+                		$('#outputConsoleTab').addClass("active");                		
+                		
                 	}
                 }
             });
@@ -821,4 +854,14 @@ $(document).ready(function() {
         });
     });    
 });
+
+/** BACKUP:
+ * 
+    $('#saveButton').click(function() {
+        var newFileName = $('#fileName').text();
+        if ($('a.dynatree-title:contains("' + newFileName + '")').length === 0) {
+            saveFile(newFileName);
+        }
+    });
+ **/
 

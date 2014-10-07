@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 import javax.imageio.IIOImage;
@@ -37,6 +38,7 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.lang3.ArrayUtils;
 import org.cidarlab.eugene.Eugene;
 import org.cidarlab.eugene.data.pigeon.Pigeonizer;
 import org.cidarlab.eugene.dom.Component;
@@ -63,6 +65,7 @@ public class EugeneLabServlet
 	private String IMAGE_DIRECTORY;
 	private static org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger("EugenLabServlet");
 	private static final String USER_HOMES = "home";
+	private static final int MAX_VISUAL_COMPONENTS = 10;
 	
 	/*
 	 * a writer that is being used for writing
@@ -505,6 +508,13 @@ public class EugeneLabServlet
     		// therefore, we use Pigeon
     		if(null != components && !components.isEmpty()) {
 	
+    			if(components.size() > MAX_VISUAL_COMPONENTS) {
+    				/*
+    				 * pick the first ten components
+    				 */
+    				components = this.getRandomComponents(components, MAX_VISUAL_COMPONENTS);
+    			}
+    			
 	    		/*
 	    		 * pigeonize the collection and 
 	    		 * return the URI of the generated pigeon image
@@ -517,7 +527,7 @@ public class EugeneLabServlet
     		}
     		
     		jsonResponse.put("eugene-output", 
-    				this.baos.toString());
+    				this.baos.toString().replaceAll("\\n", "<br/>"));
     	} catch(Exception e) {
     		throw new EugeneException(e.toString());
     	}
@@ -525,6 +535,15 @@ public class EugeneLabServlet
     	return jsonResponse;
     }
     
+    private Collection<Component> getRandomComponents(Collection<Component> components, int MAX) {
+    	Collection<Component> lst = new ArrayList<Component>(MAX);
+    	Iterator<Component> it = components.iterator();
+    	for(int i=0; i<MAX; i++) {
+    		lst.add(it.next());
+    	}
+    	return lst;
+    }
+
     /*
      * PIGEON
      */
@@ -633,11 +652,13 @@ public class EugeneLabServlet
     private String getUsername(Cookie[] cookies) {
     	
         String username = this.getDefaultUser();
-    	for(Cookie c : cookies) {
-    		if("user".equalsIgnoreCase(c.getName())) {
-    			return c.getValue();
-    		}
-    	}
+        if(null != cookies) {
+	    	for(Cookie c : cookies) {
+	    		if("user".equalsIgnoreCase(c.getName())) {
+	    			return c.getValue();
+	    		}
+	    	}
+        }
 
     	return username;
     }

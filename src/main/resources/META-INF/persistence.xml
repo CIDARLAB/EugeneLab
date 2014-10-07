@@ -16,7 +16,6 @@
     </properties>
   </persistence-unit>
 	
-  <!--  
   <persistence-unit name="TEST" transaction-type="RESOURCE_LOCAL">
     <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
     <class>org.cidarlab.web.UserInformation</class>
@@ -28,6 +27,5 @@
 		<property name="eclipselink.ddl-generation" 		value="drop-and-create-tables" />
 	</properties>
   </persistence-unit>
-	-->
 
 </persistence>

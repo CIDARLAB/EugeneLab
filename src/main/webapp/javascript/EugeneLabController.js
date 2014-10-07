@@ -625,7 +625,8 @@ $(document).ready(function() {
                  */
                 if ("exception" === response["status"]) {                	
                 	// print the exception
-                    $('#outputMessage').html("<font color=red>Exception: " + response['result'] + "</font>");
+                	$("#outputMessage").attr("class", "alert alert-danger");
+                    $('#outputMessage').html("Exception: " + response['result'] + "");
                     
                     // delete the content of all other output areas
                     $('#outputImageArea').html('');
@@ -692,6 +693,15 @@ $(document).ready(function() {
                         });
                         $('#outputArea').collapse('show');
                         drawPartsList();
+                	}
+                	
+                	/*
+                	 * OUTPUT messages
+                	 */
+                	if(response['eugene-output'] !== undefined) {
+                		// print the exception
+                    	$("#outputMessage").attr("class", "alert alert-success");
+                		$('#outputMessage').html(response['eugene-output']);
                 	}
                 }
             });

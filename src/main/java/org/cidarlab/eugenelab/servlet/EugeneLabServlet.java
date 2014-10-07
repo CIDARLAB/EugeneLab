@@ -2,9 +2,13 @@ package org.cidarlab.eugenelab.servlet;
 
 import java.awt.image.RenderedImage;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
@@ -60,7 +64,14 @@ public class EugeneLabServlet
 	private static org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger("EugenLabServlet");
 	private static final String USER_HOMES = "home";
 	
-
+	/*
+	 * a writer that is being used for writing
+	 * all Eugene outputs
+	 * mainly being used for print and println
+	 */
+	private BufferedWriter writer;
+	private ByteArrayOutputStream baos;
+	
 	@Override
     public void init(ServletConfig config)
             throws ServletException {
@@ -69,32 +80,68 @@ public class EugeneLabServlet
 
         this.factory = null;
         
-        // initialize a Pigeonizer instance
+        /*
+         * initialize Pigeon
+         */
+        this.IMAGE_DIRECTORY = config.getInitParameter("IMAGE_DIRECTORY");
         this.pigeon = new Pigeonizer();
 
-        this.IMAGE_DIRECTORY = config.getInitParameter("IMAGE_DIRECTORY");
+        /*
+         * initialize the Clotho connection
+         * WILL THIS COME SOON?
+         */
         //this.clotho = ClothoFactory.getAPI("ws://localhost:8080/websocket");
         
+        /*
+         * initialize the logger
+         */
 	    // set a system property such that Simple Logger will include timestamp
         System.setProperty("org.slf4j.simpleLogger.showDateTime", "true");
         // set a system property such that Simple Logger will include timestamp in the given format
         System.setProperty("org.slf4j.simpleLogger.dateTimeFormat", "dd-MM-yy HH:mm:ss");
-
         // set minimum log level for SLF4J Simple Logger at warn
         System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "warn");
         
-        LOGGER.warn("[EugeneLabServlet] loaded!");	    
+        /*
+         * initialize the writer
+         */
+        try {        
+        	this.baos = new ByteArrayOutputStream();
+            this.writer = new BufferedWriter(
+            		new OutputStreamWriter(baos), 
+            		1024);
+        } catch(Exception e) {
+        	throw new ServletException(e.getLocalizedMessage());
+        }
+
+        LOGGER.warn("[EugeneLabServlet] loaded!");	          
     }
+	
+	private void initEugene(HttpSession session) 
+		throws EugeneException {
+		
+		try {
+			this.eugene = new Eugene(
+					session.getId(), 
+					this.writer);
+		} catch(EugeneException ee) {
+			throw new EugeneException(ee.toString());
+		}
+	}
 
     @Override
     public void destroy() {
     	// TODO: persist all running instances of Sparrow 
     	
-        LOGGER.warn("[EugeneLabServlet] destroying eugene servlet...");	    
+    	this.writer = null;
+    	this.pigeon = null;
+    	this.eugene = null;
+    	
+        LOGGER.warn("[EugeneLabServlet] destroyed!");	    
     }
 
     /**
-     * Handles the HTTP <code>GET</code> method.
+     * Handles HTTP <code>GET</code> requests
      *
      * @param request servlet request
      * @param response servlet response
@@ -111,9 +158,9 @@ public class EugeneLabServlet
     	HttpSession session = request.getSession();
     	if(null == this.eugene) {
     		try {
-    			this.eugene = new Eugene(session.getId());
+    			this.initEugene(session);
     		} catch(EugeneException ee) {
-    			throw new ServletException(ee.toString());
+    			throw new ServletException(ee.getLocalizedMessage());
     		}
     	}
     	
@@ -174,7 +221,7 @@ public class EugeneLabServlet
 
 
     /**
-     * Handles the HTTP <code>POST</code> method.
+     * Handles HTTP <code>POST</code> requests.
      *
      * @param request servlet request
      * @param response servlet response
@@ -183,7 +230,9 @@ public class EugeneLabServlet
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
-    		throws IOException {
+    		throws ServletException, IOException {
+
+    	LOGGER.warn("[doPost] session: " + request.getSession());
 
     	/*
     	 * do some session handling
@@ -191,11 +240,13 @@ public class EugeneLabServlet
     	HttpSession session = request.getSession();
     	if(null == this.eugene) {
     		try {
-    			this.eugene = new Eugene(session.getId());
+    			this.initEugene(session);
     		} catch(EugeneException ee) {
-    			throw new IOException(ee.toString());
+    			throw new ServletException(ee.getLocalizedMessage());
     		}
     	}
+
+    	LOGGER.warn("[doPost] session: " + request.getSession());
 
     	processPostRequest(request, response);
     }
@@ -229,8 +280,7 @@ public class EugeneLabServlet
 	            // get the command
 	        	String command = request.getParameter("command");
 
-	        	
-	        	LOGGER.warn("[processPostRequest] -> " + command);
+	        	LOGGER.warn("[processPostRequest] username: " + username+", command: "+ command);
 	        	
 	        	/*---------------------------------
 	        	 *  FILE HANDLING requests
@@ -443,13 +493,12 @@ public class EugeneLabServlet
     private JSONObject executeEugene(String script) 
     		throws EugeneException {
     	
-    	if(null == this.eugene) {
-    		this.eugene = new Eugene();
-    	}
-    	
     	JSONObject jsonResponse = new JSONObject();
     	
     	try {
+    		
+    		this.baos.reset();
+    		
     		Collection<Component> components = this.eugene.executeScript(script);
     		
     		// visualize the outcome using SBOL visual compliant glyphs
@@ -467,6 +516,8 @@ public class EugeneLabServlet
 	    		jsonResponse.put("pigeon-uri", pigeon);
     		}
     		
+    		jsonResponse.put("eugene-output", 
+    				this.baos.toString());
     	} catch(Exception e) {
     		throw new EugeneException(e.toString());
     	}

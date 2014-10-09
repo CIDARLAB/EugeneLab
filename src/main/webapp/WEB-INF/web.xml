@@ -6,7 +6,7 @@
         <servlet-name>EugeneLabServlet</servlet-name>
         <servlet-class>org.cidarlab.eugenelab.servlet.EugeneLabServlet</servlet-class>
         <init-param>
-        	<param-name>IMAGE_DIRECTORY</param-name>
+        	<param-name>TMP_DIRECTORY</param-name>
         	<param-value>/src/main/webapp/tmp</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>

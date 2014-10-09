@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -18,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 
 import javax.imageio.IIOImage;
@@ -38,15 +36,17 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.commons.lang3.ArrayUtils;
 import org.cidarlab.eugene.Eugene;
 import org.cidarlab.eugene.data.pigeon.Pigeonizer;
+import org.cidarlab.eugene.data.sbol.SBOLExporter;
 import org.cidarlab.eugene.dom.Component;
 import org.cidarlab.eugene.dom.Device;
 import org.cidarlab.eugene.dom.NamedElement;
 import org.cidarlab.eugene.dom.imp.container.EugeneCollection;
 import org.cidarlab.eugene.exception.EugeneException;
 import org.json.JSONObject;
+import org.sbolstandard.core.SBOLDocument;
+import org.sbolstandard.core.SBOLFactory;
 
 /**
  *
@@ -62,7 +62,7 @@ public class EugeneLabServlet
 	private TreeBuilder treeBuilder;
 	
 	private Pigeonizer pigeon;
-	private String IMAGE_DIRECTORY;
+	private String TMP_DIRECTORY;
 	private static org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger("EugenLabServlet");
 	private static final String USER_HOMES = "home";
 	private static final int MAX_VISUAL_COMPONENTS = 10;
@@ -84,9 +84,22 @@ public class EugeneLabServlet
         this.factory = null;
         
         /*
+         * read the temporary directory information from the 
+         * web.xml configuration file
+         * 
+         * in this directory we store all generated SBOL and Pigeon 
+         * images (for the time being (and maybe until the end of the computer area, i.e. forever))
+         */
+        this.TMP_DIRECTORY = config.getInitParameter("TMP_DIRECTORY");
+		File tmp = new File(this.TMP_DIRECTORY);
+		if(!tmp.exists()) {
+			tmp.mkdir();
+			tmp.mkdirs();
+		}
+		
+        /*
          * initialize Pigeon
          */
-        this.IMAGE_DIRECTORY = config.getInitParameter("IMAGE_DIRECTORY");
         this.pigeon = new Pigeonizer();
 
         /*
@@ -507,23 +520,27 @@ public class EugeneLabServlet
     		// visualize the outcome using SBOL visual compliant glyphs
     		// therefore, we use Pigeon
     		if(null != components && !components.isEmpty()) {
-	
-    			if(components.size() > MAX_VISUAL_COMPONENTS) {
-    				/*
-    				 * pick the first ten components
-    				 */
-    				components = this.getRandomComponents(components, MAX_VISUAL_COMPONENTS);
-    			}
+    			
+    			/*
+    			 * first, we convert the Collection into a EugeneCollection
+    			 * 
+    	    	 * whoever reads those lines, please enhance this!
+    	    	 * ie Eugene should return a EugeneCollection already!
+    			 */
+        		EugeneCollection col = new EugeneCollection(UUID.randomUUID().toString());
+        		col.getElements().addAll(components);
+        		
     			
 	    		/*
 	    		 * pigeonize the collection and 
 	    		 * return the URI of the generated pigeon image
 	    		 */
-	    		EugeneCollection col = new EugeneCollection(UUID.randomUUID().toString());
-	    		col.getElements().addAll(components);
-	    		
-	    		URI pigeon = this.pigeonize(col);	    		
-	    		jsonResponse.put("pigeon-uri", pigeon);
+    			jsonResponse.put("pigeon-uri", this.pigeonize(col));
+    			
+    			/*
+    			 * SBOL XML/RDF serialization
+    			 */
+    			jsonResponse.put("sbol-xml-rdf", this.SBOLize(col));
     		}
     		
     		jsonResponse.put("eugene-output", 
@@ -556,20 +573,23 @@ public class EugeneLabServlet
     		List<URI> uris = new ArrayList<URI>();
 			for(NamedElement ne : col.getElements()) {
 				if(ne instanceof Device) {
-					uris.add(
-						this.pigeon.pigeonizeSingle((Device)ne, null));
+					uris.add(this.pigeon.pigeonizeSingle((Device)ne, null));
 				}
+				
+				// we only pigeonize MAX_VISUAL_COMPONENTS
+				if(uris.size() > MAX_VISUAL_COMPONENTS) {
+					break;
+				}
+			}
+			
+			if(uris.isEmpty()) {
+				return null;
 			}
 			
 			// do some file/directory management
 			// arghhh
-			String pictureName = UUID.randomUUID() + ".png";
-			String imgFilename = "." + this.IMAGE_DIRECTORY + "/" + pictureName;			
-			File imgFile = new File(imgFilename);
-			if(!imgFile.getParentFile().exists()) {
-				imgFile.getParentFile().mkdir();
-				imgFile.getParentFile().mkdirs();
-			}
+			String pictureName = col.getName() + ".png";
+			String imgFilename = "." + this.TMP_DIRECTORY + "/" + pictureName;
 			
 			// merge all images (created above) 
 			// into a single big image
@@ -582,14 +602,66 @@ public class EugeneLabServlet
 			// then we return the relative URL of
 			// the resulting image
 			return URI.create("/tmp/" + pictureName);
-			
+				// how can we get rid of the tmp w/o
+				// sophisticated string operations?
     	} catch(Exception ee) {
     		// something went wrong, i.e.
     		// throw an exception
-    		throw new EugeneException(ee.getMessage());
+    		throw new EugeneException(ee.getLocalizedMessage());
     	}
 		
     }
+    
+    /*-------------------------------
+     * SBOL XML/RDF serialization
+     *-------------------------------*/
+    private String SBOLize(EugeneCollection col) 
+    		throws EugeneException {
+    	
+		String sbolFilename = col.getName() + ".sbol";
+		String sbolPath = "." + this.TMP_DIRECTORY + "/" + sbolFilename;
+
+    	SBOLDocument doc = SBOLExporter.toSBOLDocument(col);
+
+    	/*
+    	 * now, we persist the SBOLDocument object
+    	 * to a file  
+    	 */
+    	this.serializeSBOL(doc, sbolPath);
+    	
+    	return "Download the SBOL file <a href=\"/EugeneLab/tmp/"+sbolFilename+"\">here</a>";    	
+    }
+    
+    
+	private void serializeSBOL(SBOLDocument document, String file) 
+			throws EugeneException {
+
+		try {
+			// open a file stream
+			FileOutputStream fos;
+			File f = new File(file);
+			if(!f.getParentFile().exists()) {
+				f.getParentFile().mkdir();
+				f.getParentFile().mkdirs();
+			}
+			if (!f.exists()) {
+				f.createNewFile();
+			}
+			fos = new FileOutputStream(f);
+	
+			// write the document to the file stream
+			// using the SBOLFactory
+			SBOLFactory.write(document, fos);
+	
+			// flush and close the stream
+			fos.flush();
+			fos.close();
+		} catch(Exception e) {
+			// if something went wrong, throw an exception
+			throw new EugeneException(e.toString());
+		}
+	}
+
     
     public void writeToFile(RenderedImage buff, String savePath) 
     		throws EugeneException {

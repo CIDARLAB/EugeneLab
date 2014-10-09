@@ -707,6 +707,16 @@ $(document).ready(function() {
                 	}
                 	
                 	/*
+                	 * SBOL XML/RDF
+                	 */
+                	if(response['sbol-xml-rdf'] !== undefined &&
+                			response['sbol-xml-rdf'] !== '') {
+                        $('#outputListArea').html(response['sbol-xml-rdf']);
+                	} else {
+                        $('#outputListArea').html('');
+                	}
+                	
+                	/*
                 	 * OUTPUT messages
                 	 * 
                 	 * we activate the console iff 

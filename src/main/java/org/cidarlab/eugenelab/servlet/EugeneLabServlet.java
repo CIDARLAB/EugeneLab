@@ -1,29 +1,21 @@
 package org.cidarlab.eugenelab.servlet;
 
-import java.awt.image.RenderedImage;
 import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
-import javax.imageio.IIOImage;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
-import javax.imageio.stream.FileImageOutputStream;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -36,17 +28,10 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.cidarlab.eugene.Eugene;
-import org.cidarlab.eugene.data.pigeon.Pigeonizer;
-import org.cidarlab.eugene.data.sbol.SBOLExporter;
 import org.cidarlab.eugene.dom.Component;
-import org.cidarlab.eugene.dom.Device;
-import org.cidarlab.eugene.dom.NamedElement;
 import org.cidarlab.eugene.dom.imp.container.EugeneCollection;
 import org.cidarlab.eugene.exception.EugeneException;
 import org.json.JSONObject;
-import org.sbolstandard.core.SBOLDocument;
-import org.sbolstandard.core.SBOLFactory;
 
 /**
  *
@@ -58,22 +43,21 @@ public class EugeneLabServlet
 	private static final long serialVersionUID = -5373818164273289666L;
 
 	private DiskFileItemFactory factory;
-	private Eugene eugene;
 	private TreeBuilder treeBuilder;
 	
-	private Pigeonizer pigeon;
-	private String TMP_DIRECTORY;
+	private static String USER_HOMES_DIRECTORY;
+	private static String TMP_IMAGE_DIRECTORY;
+	
 	private static org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger("EugenLabServlet");
-	private static final String USER_HOMES = "home";
 	private static final int MAX_VISUAL_COMPONENTS = 10;
 	
 	/*
-	 * a writer that is being used for writing
-	 * all Eugene outputs
-	 * mainly being used for print and println
+	 * In the EugeneLabServlet, every sessions gets an instance
+	 * to a EugeneAdapter. Therefore, the eugeneInstances hash map 
+	 * holds for all existing sessions a reference to the session's
+	 * EugeneAdapter instance.
 	 */
-	private BufferedWriter writer;
-	private ByteArrayOutputStream baos;
+	private Map<String, EugeneAdapter> eugeneInstances;
 	
 	@Override
     public void init(ServletConfig config)
@@ -90,18 +74,26 @@ public class EugeneLabServlet
          * in this directory we store all generated SBOL and Pigeon 
          * images (for the time being (and maybe until the end of the computer area, i.e. forever))
          */
-        this.TMP_DIRECTORY = config.getInitParameter("TMP_DIRECTORY");
-		File tmp = new File(this.TMP_DIRECTORY);
+        TMP_IMAGE_DIRECTORY = config.getInitParameter("TMP_IMAGE_DIRECTORY");
+		File tmp = new File(TMP_IMAGE_DIRECTORY);
 		if(!tmp.exists()) {
 			tmp.mkdir();
 			tmp.mkdirs();
 		}
-		
-        /*
-         * initialize Pigeon
-         */
-        this.pigeon = new Pigeonizer();
 
+		// USER_HOMES directory
+        USER_HOMES_DIRECTORY = config.getInitParameter("USER_HOMES_DIRECTORY");
+		File uh = new File(USER_HOMES_DIRECTORY);
+		if(!uh.exists()) {
+			uh.mkdir();
+			uh.mkdirs();
+		}
+
+		/*
+		 * we also initialize the hashmap of eugene instances
+		 */
+		this.eugeneInstances = new HashMap<String, EugeneAdapter>();
+		
         /*
          * initialize the Clotho connection
          * WILL THIS COME SOON?
@@ -118,42 +110,27 @@ public class EugeneLabServlet
         // set minimum log level for SLF4J Simple Logger at warn
         System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "warn");
         
-        /*
-         * initialize the writer
-         */
-        try {        
-        	this.baos = new ByteArrayOutputStream();
-            this.writer = new BufferedWriter(
-            		new OutputStreamWriter(baos), 
-            		1024);
-        } catch(Exception e) {
-        	throw new ServletException(e.getLocalizedMessage());
-        }
-
         LOGGER.warn("[EugeneLabServlet] loaded!");	          
     }
 	
-	private void initEugene(HttpSession session) 
-		throws EugeneException {
-		
-		try {
-			this.eugene = new Eugene(
-					session.getId(), 
-					this.writer);
-		} catch(EugeneException ee) {
-			throw new EugeneException(ee.toString());
-		}
+	public static String getUserHomesDirectory() {
+		return USER_HOMES_DIRECTORY;
 	}
-
+	
+	public static String getTmpImageDirectory() {
+		return TMP_IMAGE_DIRECTORY;
+	}
+	
     @Override
     public void destroy() {
-    	// TODO: persist all running instances of Sparrow 
     	
-    	this.writer = null;
-    	this.pigeon = null;
-    	this.eugene = null;
-    	
-        LOGGER.warn("[EugeneLabServlet] destroyed!");	    
+    	if(null != this.eugeneInstances) {
+    		for(String session : this.eugeneInstances.keySet()) {
+    			this.eugeneInstances.get(session).persistAndCleanUp();
+    		}
+    	}
+
+    	LOGGER.warn("[EugeneLabServlet] destroyed!");	    
     }
 
     /**
@@ -168,18 +145,6 @@ public class EugeneLabServlet
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-    	/*
-    	 * do some session handling
-    	 */
-    	HttpSession session = request.getSession();
-    	if(null == this.eugene) {
-    		try {
-    			this.initEugene(session);
-    		} catch(EugeneException ee) {
-    			throw new ServletException(ee.getLocalizedMessage());
-    		}
-    	}
-    	
     	processGetRequest(request, response);
     }
 
@@ -215,7 +180,7 @@ public class EugeneLabServlet
 
             } else if ("getLibrary".equalsIgnoreCase(command)) {
             	
-            	out.write(this.buildLibraryTree(username));
+            	out.write(this.buildLibraryTree(username, request.getSession().getId()));
             	
             } else if ("loadFile".equalsIgnoreCase(command)) {
                 response.setContentType("text/html;charset=UTF-8");
@@ -247,22 +212,6 @@ public class EugeneLabServlet
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
     		throws ServletException, IOException {
-
-    	LOGGER.warn("[doPost] session: " + request.getSession());
-
-    	/*
-    	 * do some session handling
-    	 */
-    	HttpSession session = request.getSession();
-    	if(null == this.eugene) {
-    		try {
-    			this.initEugene(session);
-    		} catch(EugeneException ee) {
-    			throw new ServletException(ee.getLocalizedMessage());
-    		}
-    	}
-
-    	LOGGER.warn("[doPost] session: " + request.getSession());
 
     	processPostRequest(request, response);
     }
@@ -312,7 +261,7 @@ public class EugeneLabServlet
 		         *  EUGENE-related requests
 		         *--------------------------------*/	        	
 	        	} else if("execute".equalsIgnoreCase(command)) {
-	        		jsonResponse = this.executeEugene(request.getParameter("script"));
+	        		jsonResponse = this.executeEugene(username, request.getParameter("script"), request.getSession());
 	        	} else {
 	        		throw new EugeneException("Invalid request!");
 	        	}
@@ -345,7 +294,7 @@ public class EugeneLabServlet
     	
         String home = Paths.get(
         		this.getServletContext().getRealPath(""), 
-        		USER_HOMES, 
+        		USER_HOMES_DIRECTORY, 
         		username).toString();
         
         // if the user does not have a "home"-directory,
@@ -364,10 +313,14 @@ public class EugeneLabServlet
 			this.treeBuilder = new TreeBuilder();
 		}
 
-		return this.treeBuilder.buildFileTree(home).toString();
+		LOGGER.warn(home);
+		String filetree = this.treeBuilder.buildFileTree(home).toString();
+		LOGGER.warn(filetree);
+		
+		return filetree;
     }
     
-    private String buildLibraryTree(String username) 
+    private String buildLibraryTree(String username, String sessionId) 
     		throws EugeneException {
     	
 		if(null == this.treeBuilder) {
@@ -375,14 +328,15 @@ public class EugeneLabServlet
 		}
 		
     	Collection<Component> library = null;
-        if(null != this.eugene) {
+    	EugeneAdapter ea = this.getEugeneAdapter(username, sessionId);
+        if(null != ea) {
         	try {
-        		library = this.eugene.getLibrary();
+        		library = ea.getLibrary();
         	} catch(EugeneException ee) {
         		
         	}
         }
-        
+		
    		return this.treeBuilder.buildLibraryTree(library).toString();
     }
 
@@ -391,7 +345,7 @@ public class EugeneLabServlet
        	return new String(Files.readAllBytes(
        						Paths.get(
        								this.getServletContext().getRealPath(""), 
-       								USER_HOMES, 
+       								USER_HOMES_DIRECTORY, 
        								username, 
        								fileName)));
     }
@@ -424,7 +378,7 @@ public class EugeneLabServlet
     	 */
     	String uploadFilePath = Paths.get(
     			this.getServletContext().getRealPath(""), 
-    			USER_HOMES, 
+    			USER_HOMES_DIRECTORY, 
     			username).toString();
         File userDir = new File(uploadFilePath);
         if(!userDir.exists()) {
@@ -471,7 +425,7 @@ public class EugeneLabServlet
     	Files.createFile(
     			Paths.get(
     					this.getServletContext().getRealPath(""), 
-    					USER_HOMES, 
+    					USER_HOMES_DIRECTORY, 
     					username, 
     					filename));
     	
@@ -491,31 +445,56 @@ public class EugeneLabServlet
     	Files.deleteIfExists(
     			Paths.get(
     					this.getServletContext().getRealPath(""), 
-    					USER_HOMES, 
+    					USER_HOMES_DIRECTORY, 
     					username, 
     					filename));
     	
     }
     
     
+    private EugeneAdapter getEugeneAdapter(String username, String sessionId) 
+    		throws EugeneException {
+
+    	EugeneAdapter ea = this.eugeneInstances.get(sessionId);
+    	if(null != ea) {
+    		return ea;
+    	}
+    	
+    	/*
+    	 * if no EugeneAdapter exists, then we create one
+    	 */
+    	String homeDirectory = Paths.get(
+					this.getServletContext().getRealPath(""), 
+					USER_HOMES_DIRECTORY, 
+					username).toString();
+    
+    	ea = new EugeneAdapter(username, sessionId);    	
+    	this.eugeneInstances.put(sessionId, ea);
+    	return ea;
+    }
+    
     /**
      * The executeEugene/1 method executes the Eugene script 
      * that the user typed into the large textarea.
      * 
-     * @param script
-     * @return a JSONObject containing the for the web-interface relevant information
+     * @param username  ... the current user logged in
+     * @param script    ... the Eugene script
+     * @param session   ... the HTTP session object
+     * 
+     * @return  a JSONObject containing all relevant display data
+     *          for the EugeneLab Front-End
+     *          
      * @throws EugeneException
      */
-    private JSONObject executeEugene(String script) 
+    private JSONObject executeEugene(String username, String script, HttpSession session) 
     		throws EugeneException {
     	
     	JSONObject jsonResponse = new JSONObject();
     	
     	try {
+    		EugeneAdapter ea = this.getEugeneAdapter(username, session.getId());
     		
-    		this.baos.reset();
-    		
-    		Collection<Component> components = this.eugene.executeScript(script);
+    		Collection<Component> components = ea.executeScript(script);
     		
     		// visualize the outcome using SBOL visual compliant glyphs
     		// therefore, we use Pigeon
@@ -535,16 +514,16 @@ public class EugeneLabServlet
 	    		 * pigeonize the collection and 
 	    		 * return the URI of the generated pigeon image
 	    		 */
-    			jsonResponse.put("pigeon-uri", this.pigeonize(col));
+    			jsonResponse.put("pigeon-uri", ea.pigeonize(col, MAX_VISUAL_COMPONENTS));
     			
     			/*
     			 * SBOL XML/RDF serialization
     			 */
-    			jsonResponse.put("sbol-xml-rdf", this.SBOLize(col));
+    			jsonResponse.put("sbol-xml-rdf", ea.SBOLize(col));
     		}
     		
-    		jsonResponse.put("eugene-output", 
-    				this.baos.toString().replaceAll("\\n", "<br/>"));
+    		jsonResponse.put("eugene-output", ea.getEugeneOutput());
+
     	} catch(Exception e) {
     		throw new EugeneException(e.toString());
     	}
@@ -559,129 +538,6 @@ public class EugeneLabServlet
     		lst.add(it.next());
     	}
     	return lst;
-    }
-
-    /*
-     * PIGEON
-     */
-    private URI pigeonize(EugeneCollection col) 
-    		throws EugeneException {
-		
-    	try {
-			
-    		// visualize every single device of the collection
-    		List<URI> uris = new ArrayList<URI>();
-			for(NamedElement ne : col.getElements()) {
-				if(ne instanceof Device) {
-					uris.add(this.pigeon.pigeonizeSingle((Device)ne, null));
-				}
-				
-				// we only pigeonize MAX_VISUAL_COMPONENTS
-				if(uris.size() > MAX_VISUAL_COMPONENTS) {
-					break;
-				}
-			}
-			
-			if(uris.isEmpty()) {
-				return null;
-			}
-			
-			// do some file/directory management
-			// arghhh
-			String pictureName = col.getName() + ".png";
-			String imgFilename = "." + this.TMP_DIRECTORY + "/" + pictureName;
-			
-			// merge all images (created above) 
-			// into a single big image
-			RenderedImage img = this.pigeon.toMergedImage(uris);
-			
-			// serialize the image to the filesystem
-			this.writeToFile(img, imgFilename);
-
-			// if everything went fine so far, 
-			// then we return the relative URL of
-			// the resulting image
-			return URI.create("/tmp/" + pictureName);
-				// how can we get rid of the tmp w/o
-				// sophisticated string operations?
-    	} catch(Exception ee) {
-    		// something went wrong, i.e.
-    		// throw an exception
-    		throw new EugeneException(ee.getLocalizedMessage());
-    	}
-		
-    }
-    
-    /*-------------------------------
-     * SBOL XML/RDF serialization
-     *-------------------------------*/
-    private String SBOLize(EugeneCollection col) 
-    		throws EugeneException {
-    	
-		String sbolFilename = col.getName() + ".sbol";
-		String sbolPath = "." + this.TMP_DIRECTORY + "/" + sbolFilename;
-
-    	SBOLDocument doc = SBOLExporter.toSBOLDocument(col);
-
-    	/*
-    	 * now, we persist the SBOLDocument object
-    	 * to a file  
-    	 */
-    	this.serializeSBOL(doc, sbolPath);
-    	
-    	return "Download the SBOL file <a href=\"/EugeneLab/tmp/"+sbolFilename+"\">here</a>";    	
-    }
-    
-    
-	private void serializeSBOL(SBOLDocument document, String file) 
-			throws EugeneException {
-
-		try {
-			// open a file stream
-			FileOutputStream fos;
-			File f = new File(file);
-			if(!f.getParentFile().exists()) {
-				f.getParentFile().mkdir();
-				f.getParentFile().mkdirs();
-			}
-			if (!f.exists()) {
-				f.createNewFile();
-			}
-			fos = new FileOutputStream(f);
-	
-			// write the document to the file stream
-			// using the SBOLFactory
-			SBOLFactory.write(document, fos);
-	
-			// flush and close the stream
-			fos.flush();
-			fos.close();
-		} catch(Exception e) {
-			// if something went wrong, throw an exception
-			throw new EugeneException(e.toString());
-		}
-	}
-
-    
-    public void writeToFile(RenderedImage buff, String savePath) 
-    		throws EugeneException {
-
-    	try {
-//            Logger.warn("got image : " + buff.toString());
-            Iterator iter = ImageIO.getImageWritersByFormatName("png");
-            ImageWriter writer = (ImageWriter)iter.next();
-            ImageWriteParam iwp = writer.getDefaultWriteParam();
-
-            File file = new File(savePath);
-            FileImageOutputStream output = new FileImageOutputStream(file);
-            writer.setOutput(output);
-            IIOImage image = new IIOImage(buff, null, null);
-            writer.write(null, image, iwp);
-            writer.dispose();
-
-        } catch (Exception e) {
-            throw new EugeneException(e.getMessage());
-        }
     }
 
     private void saveFile(String username, String fileName, String fileContent) 
@@ -700,10 +556,16 @@ public class EugeneLabServlet
 
     private String getFileExtension(String username, String localExtension, boolean isFile) {
         //String extension = this.getServletContext().getRealPath("/") + "/data/" + getCurrentUser() + "/" + localExtension;
-        String extension = Paths.get(this.getServletContext().getRealPath(""), USER_HOMES, username, localExtension).toString();
+        String extension = Paths.get(
+        		this.getServletContext().getRealPath(""), 
+        		USER_HOMES_DIRECTORY, 
+        		username, 
+        		localExtension).toString();
+        
         if (!isFile) {
             extension += "/";
         }
+        
         return extension;
     }
     

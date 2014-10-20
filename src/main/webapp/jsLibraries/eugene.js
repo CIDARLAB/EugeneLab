@@ -235,6 +235,10 @@ CodeMirror.defineMode("eugene", function(config, parserConfig) {
                 "FORWARD forward ALL_FORWARD all_forward SOME_FORWARD some_forward "+
                 "REVERSE reverse ALL_REVERSE all_reverse SOME_REVERSE some_reverse "+
                 "ALTERNATE_ORIENTATION alternate_orientation "),
+        // built-in functions and imperative features of Eugene
+        builtin: words("if IF elseif ELSEIF else ELSE for FOR "+
+        		"SAVE save STORE store RANDOM random PIGEON pigeon SIZEOF sizeof "+
+        		"print PRINT println PRINTLN product PRODUCT permute PERMUTE"),
         blockKeywords: words("if elseif else for"),
         atoms: words("true false"),
         hooks: {

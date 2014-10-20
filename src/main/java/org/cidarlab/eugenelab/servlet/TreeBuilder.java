@@ -13,7 +13,6 @@ import org.cidarlab.eugene.dom.Component;
 import org.cidarlab.eugene.dom.Device;
 import org.cidarlab.eugene.dom.Part;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 public class TreeBuilder {
@@ -21,10 +20,8 @@ public class TreeBuilder {
 	public TreeBuilder() {}
 	
 	public JSONArray buildFileTree(String home) {
+		
         File rootFolder = new File(home);
-        List<File> queue = new ArrayList<File>();
-        List<JSONArray> folders = new ArrayList<JSONArray>();
-        List<Integer> folderSizes = new ArrayList<Integer>();
         File[] rootFiles = rootFolder.listFiles();
         
         JSONArray rootArray = new JSONArray();        
@@ -32,54 +29,30 @@ public class TreeBuilder {
             return rootArray;
         }
         for (int i = 0; i < rootFiles.length; i++) {
-            queue.add(rootFiles[i]);
-        }
+        	
+            JSONObject toPut = new JSONObject();
+            toPut.put("title", rootFiles[i].getName());
+            if (rootFiles[i].isDirectory()) {
+            	
+            	/*
+            	 * iterate over all children
+            	 */
+            	JSONArray childs = new JSONArray();
+	            File[] subFiles = rootFiles[i].listFiles();
+	            for (int j = 0; j < subFiles.length; j++) {
+	            	JSONObject child = new JSONObject();
+	            	child.put("title", subFiles[j].getName());
+	            	  
+	            	childs.put(child);
+	            }
 
-        JSONArray currentArray = rootArray;
-        boolean switchFolder = false;
-        int currentFolderSize = rootFolder.listFiles().length;
-        int counter = 1;
-        while (!queue.isEmpty()) {
-            try {
-                File currentFile = queue.get(0);
-                queue.remove(0);
-//                System.out.println(switchFolder + " " + counter + " | " + currentFolderSize + " " + currentFile.getName());
-
-                if (!switchFolder) {
-                    switchFolder = false;
-                }
-                JSONObject toPut = new JSONObject();
-                toPut.put("title", currentFile.getName());
-                currentArray.put(toPut);
-                if (currentFile.isDirectory()) {
-                    switchFolder = true;
-                    toPut.put("children", new JSONArray());
-                    toPut.put("isFolder", true);
-                    if (currentFile.listFiles().length > 0) {
-                        folderSizes.add(currentFile.listFiles().length);
-                        folders.add(toPut.getJSONArray("children"));
-                    }
-                    File[] subFiles = currentFile.listFiles();
-                    for (int i = 0; i < subFiles.length; i++) {
-                        queue.add(subFiles[i]);
-                    }
-                }
-                if (switchFolder && counter == currentFolderSize) {
-//                    System.out.println("switching");
-//                    System.out.println(folderSizes);
-                    currentArray = folders.get(0);
-                    currentFolderSize = folderSizes.get(0);
-                    folderSizes.remove(0);
-                    folders.remove(0);
-                    counter = 0;
-                    switchFolder = false;
-                }
-            } catch (JSONException ex) {
-                ex.printStackTrace();
+            	toPut.put("isFolder", true);
+            	toPut.put("children", childs);
             }
-            counter++;
+
+            rootArray.put(toPut);
         }
-        
+
         return rootArray;
 	}
 	

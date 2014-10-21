@@ -43,6 +43,9 @@ public class EugeneAdapter {
 	private String sessionID;
 	private String user;
 	
+	private String HOME_DIRECTORY;
+	private String IMAGE_DIRECTORY;
+	
 	private Eugene eugene;
 	private Pigeonizer pigeon;
 	
@@ -55,11 +58,15 @@ public class EugeneAdapter {
 	private BufferedWriter writer;
 	
 	
-	public EugeneAdapter(String user, String sessionId) 
+	public EugeneAdapter(String user, String sessionId,
+			String HOME_DIRECTORY, String IMAGE_DIRECTORY) 
 			throws EugeneException {
 		
 		this.user = user;
 		this.sessionID = sessionId;
+		
+		this.HOME_DIRECTORY = HOME_DIRECTORY;
+		this.IMAGE_DIRECTORY = IMAGE_DIRECTORY;
 		
         /*
          * initialize Pigeon
@@ -113,9 +120,18 @@ public class EugeneAdapter {
 			this.eugene = new Eugene(
 					this.getSessionId(), 
 					this.getWriter());
+			
+			// we also set Eugene's root directory
+			// to the current user's home directory
+			this.eugene.setRootDirectory(
+					this.getUserHomeDirectory());
 		} catch(EugeneException ee) {
 			throw new EugeneException(ee.toString());
 		}
+	}
+	
+	private String getUserHomeDirectory() {
+		return this.HOME_DIRECTORY+"/"+this.getUser();
 	}
 	
 	
@@ -194,7 +210,7 @@ public class EugeneAdapter {
 			// do some file/directory management
 			// arghhh
 			String pictureName = col.getName() + ".png";
-			String imgFilename = "." + EugeneLabServlet.getTmpImageDirectory() + "/" + pictureName;
+			String imgFilename = IMAGE_DIRECTORY + "/" + pictureName;
 			
 			// merge all images (created above) 
 			// into a single big image
@@ -224,7 +240,7 @@ public class EugeneAdapter {
     		throws EugeneException {
     	
 		String sbolFilename = col.getName() + ".sbol";
-		String sbolPath = "." + EugeneLabServlet.getTmpImageDirectory() + "/" + sbolFilename;
+		String sbolPath = IMAGE_DIRECTORY + "/" + sbolFilename;
 
     	SBOLDocument doc = SBOLExporter.toSBOLDocument(col);
 

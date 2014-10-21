@@ -226,8 +226,10 @@ $(document).ready(function() {
                     loadFile();
                 },
                 persist: false,
-                children: children
+                children: children,
+                imagePath: "images/icons/"
             });
+            
             $('#filesArea').dynatree("getTree").reload();
         });
     };

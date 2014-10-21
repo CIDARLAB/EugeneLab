@@ -238,7 +238,8 @@ CodeMirror.defineMode("eugene", function(config, parserConfig) {
         // built-in functions and imperative features of Eugene
         builtin: words("if IF elseif ELSEIF else ELSE for FOR "+
         		"SAVE save STORE store RANDOM random PIGEON pigeon SIZEOF sizeof "+
-        		"print PRINT println PRINTLN product PRODUCT permute PERMUTE"),
+        		"print PRINT println PRINTLN product PRODUCT permute PERMUTE " +
+        		"import IMPORT export EXPORT"),
         blockKeywords: words("if elseif else for"),
         atoms: words("true false"),
         hooks: {

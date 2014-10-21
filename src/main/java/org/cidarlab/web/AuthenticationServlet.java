@@ -76,8 +76,6 @@ public class AuthenticationServlet
         	 */
         	if("signup".equals(command)) {
         		
-        		LOGGER.warn("SIGNUP! user: " + username +", password: " + password);
-
         		// register the user
             	this.auth.register(username, password);
             	
@@ -93,15 +91,15 @@ public class AuthenticationServlet
              */
         	} else if("login".equals(command)) {
         		
-        		LOGGER.warn("LOGIN! user: " + username +", password: " + password);
-
         		// first, we check if the user exists and 
         		// if the passwords match up
         		boolean bLogin = this.auth.login(username, password);
         		
         		if(bLogin) {
-            		LOGGER.warn("LOGIN VALID!");
-            		
+        			
+        			request.getSession().invalidate();
+                	request.changeSessionId();
+        			
             		// login the user including session management
                 	this.login(request, response, username);
                 	
@@ -113,9 +111,6 @@ public class AuthenticationServlet
         	 *  LOGOUT Request
         	 */
         	} else if("logout".equals(command)) {
-        		
-        		// TODO:
-        		LOGGER.warn("LOGOUT");
         		
         		HttpSession session = request.getSession(false);
         		if (session != null) {
@@ -168,7 +163,7 @@ public class AuthenticationServlet
 		 *-------------------------------*/  
 		
 		// we create a session
-		HttpSession session = request.getSession();
+		HttpSession session = request.getSession(true);
 		
 		// put the username into it
         session.setAttribute("user", user);
@@ -182,7 +177,6 @@ public class AuthenticationServlet
         Cookie authenticateCookie = new Cookie("eugenelab", "authenticated");
         Cookie userCookie = new Cookie("user", user);
         authenticateCookie.setMaxAge(60 * 60); //cookie lasts for an hour
-        
         
         // add both cookies to the response
         response.addCookie(authenticateCookie);

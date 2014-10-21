@@ -42,12 +42,17 @@ public class TreeBuilder {
 	            for (int j = 0; j < subFiles.length; j++) {
 	            	JSONObject child = new JSONObject();
 	            	child.put("title", subFiles[j].getName());
+	            	
+	                child.put("icon", this.getIcon(subFiles[j].getName().toLowerCase()));
 	            	  
 	            	childs.put(child);
 	            }
 
             	toPut.put("isFolder", true);
             	toPut.put("children", childs);
+            	
+            } else {
+                toPut.put("icon", this.getIcon(rootFiles[i].getName().toLowerCase()));
             }
 
             rootArray.put(toPut);
@@ -55,6 +60,20 @@ public class TreeBuilder {
 
         return rootArray;
 	}
+	
+	private String getIcon(String filename) {
+		if(filename.endsWith(".sbol") ||
+				filename.endsWith(".xml")) {
+			return "sbol.ico";
+		} else if(filename.endsWith(".eug")) {
+			return "eugene.jpg";
+		} else if(filename.endsWith(".h")) {
+			return "headerfile.png";
+		} else if(filename.endsWith(".gb")) {
+			return "genbank.png";
+		}
+		return null;
+	} 
 	
 	public JSONArray buildLibraryTree(Collection<Component> library) {
     	

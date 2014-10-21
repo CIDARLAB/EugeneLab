@@ -11,7 +11,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -56,6 +55,8 @@ public class EugeneLabServlet
 	 * to a EugeneAdapter. Therefore, the eugeneInstances hash map 
 	 * holds for all existing sessions a reference to the session's
 	 * EugeneAdapter instance.
+	 * 
+	 * key ... username
 	 */
 	private Map<String, EugeneAdapter> eugeneInstances;
 	
@@ -113,12 +114,16 @@ public class EugeneLabServlet
         LOGGER.warn("[EugeneLabServlet] loaded!");	          
     }
 	
-	public static String getUserHomesDirectory() {
-		return USER_HOMES_DIRECTORY;
+	public String getUserHomesDirectory() {
+		return Paths.get(
+				//this.getServletContext().getRealPath(""),
+				USER_HOMES_DIRECTORY).toString();
 	}
 	
-	public static String getTmpImageDirectory() {
-		return TMP_IMAGE_DIRECTORY;
+	public String getTmpImageDirectory() {
+		return Paths.get(
+				this.getServletContext().getRealPath(""),
+				TMP_IMAGE_DIRECTORY).toString();
 	}
 	
     @Override
@@ -169,7 +174,7 @@ public class EugeneLabServlet
         // retrieve the username from the session information
         String username = this.getUsername(request.getCookies());
         
-//        LOGGER.warn("[processGetRequest] -> " + command + ", " + username);
+//        LOGGER.warn("[processGetRequest] -> " + command + ", " + username+ ", " +request.getSession().getId());
         
         try {
             if ("getFileList".equalsIgnoreCase(command)) {
@@ -293,7 +298,7 @@ public class EugeneLabServlet
     private String getFiles(String username) {
     	
         String home = Paths.get(
-        		this.getServletContext().getRealPath(""), 
+        		//this.getServletContext().getRealPath(""), 
         		USER_HOMES_DIRECTORY, 
         		username).toString();
         
@@ -344,7 +349,7 @@ public class EugeneLabServlet
     		throws Exception {
        	return new String(Files.readAllBytes(
        						Paths.get(
-       								this.getServletContext().getRealPath(""), 
+       								//this.getServletContext().getRealPath(""), 
        								USER_HOMES_DIRECTORY, 
        								username, 
        								fileName)));
@@ -377,7 +382,7 @@ public class EugeneLabServlet
     	 * check if the user's directory exists already
     	 */
     	String uploadFilePath = Paths.get(
-    			this.getServletContext().getRealPath(""), 
+    			//this.getServletContext().getRealPath(""), 
     			USER_HOMES_DIRECTORY, 
     			username).toString();
         File userDir = new File(uploadFilePath);
@@ -424,7 +429,7 @@ public class EugeneLabServlet
     	
     	Files.createFile(
     			Paths.get(
-    					this.getServletContext().getRealPath(""), 
+    					//this.getServletContext().getRealPath(""), 
     					USER_HOMES_DIRECTORY, 
     					username, 
     					filename));
@@ -444,7 +449,7 @@ public class EugeneLabServlet
     	
     	Files.deleteIfExists(
     			Paths.get(
-    					this.getServletContext().getRealPath(""), 
+    					//this.getServletContext().getRealPath(""), 
     					USER_HOMES_DIRECTORY, 
     					username, 
     					filename));
@@ -455,7 +460,7 @@ public class EugeneLabServlet
     private EugeneAdapter getEugeneAdapter(String username, String sessionId) 
     		throws EugeneException {
 
-    	EugeneAdapter ea = this.eugeneInstances.get(sessionId);
+    	EugeneAdapter ea = this.eugeneInstances.get(username);
     	if(null != ea) {
     		return ea;
     	}
@@ -463,13 +468,9 @@ public class EugeneLabServlet
     	/*
     	 * if no EugeneAdapter exists, then we create one
     	 */
-    	String homeDirectory = Paths.get(
-					this.getServletContext().getRealPath(""), 
-					USER_HOMES_DIRECTORY, 
-					username).toString();
     
-    	ea = new EugeneAdapter(username, sessionId);    	
-    	this.eugeneInstances.put(sessionId, ea);
+    	ea = new EugeneAdapter(username, sessionId, this.getUserHomesDirectory(), this.getTmpImageDirectory());    	
+    	this.eugeneInstances.put(username, ea);
     	return ea;
     }
     
@@ -488,6 +489,8 @@ public class EugeneLabServlet
      */
     private JSONObject executeEugene(String username, String script, HttpSession session) 
     		throws EugeneException {
+    	
+    	System.out.println("[EugeneLabServlet.executeEugene] " + username + ", " + session.getId());
     	
     	JSONObject jsonResponse = new JSONObject();
     	
@@ -531,14 +534,14 @@ public class EugeneLabServlet
     	return jsonResponse;
     }
     
-    private Collection<Component> getRandomComponents(Collection<Component> components, int MAX) {
-    	Collection<Component> lst = new ArrayList<Component>(MAX);
-    	Iterator<Component> it = components.iterator();
-    	for(int i=0; i<MAX; i++) {
-    		lst.add(it.next());
-    	}
-    	return lst;
-    }
+//    private Collection<Component> getRandomComponents(Collection<Component> components, int MAX) {
+//    	Collection<Component> lst = new ArrayList<Component>(MAX);
+//    	Iterator<Component> it = components.iterator();
+//    	for(int i=0; i<MAX; i++) {
+//    		lst.add(it.next());
+//    	}
+//    	return lst;
+//    }
 
     private void saveFile(String username, String fileName, String fileContent) 
     		throws EugeneException {
@@ -557,7 +560,7 @@ public class EugeneLabServlet
     private String getFileExtension(String username, String localExtension, boolean isFile) {
         //String extension = this.getServletContext().getRealPath("/") + "/data/" + getCurrentUser() + "/" + localExtension;
         String extension = Paths.get(
-        		this.getServletContext().getRealPath(""), 
+        		//this.getServletContext().getRealPath(""), 
         		USER_HOMES_DIRECTORY, 
         		username, 
         		localExtension).toString();

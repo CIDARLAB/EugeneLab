@@ -7,11 +7,11 @@
         <servlet-class>org.cidarlab.eugenelab.servlet.EugeneLabServlet</servlet-class>
         <init-param>
         	<param-name>TMP_IMAGE_DIRECTORY</param-name>
-        	<param-value>/src/main/webapp/tmp</param-value>
+        	<param-value>tmp</param-value>
         </init-param>
         <init-param>
         	<param-name>USER_HOMES_DIRECTORY</param-name>
-        	<param-value>home</param-value>
+        	<param-value>/Users/ernstl/PostDoc/BU/Eugene/ecosystem/EugeneLab_Home/home</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>

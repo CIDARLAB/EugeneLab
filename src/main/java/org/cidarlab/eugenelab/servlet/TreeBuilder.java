@@ -1,13 +1,11 @@
 package org.cidarlab.eugenelab.servlet;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Collection;
 
 import org.cidarlab.eugene.dom.Component;
 import org.cidarlab.eugene.dom.Device;
@@ -64,7 +62,7 @@ public class TreeBuilder {
 	private String getIcon(String filename) {
 		if(filename.endsWith(".sbol") ||
 				filename.endsWith(".xml")) {
-			return "sbol.ico";
+			return "sbol.png";
 		} else if(filename.endsWith(".eug")) {
 			return "eugene.jpg";
 		} else if(filename.endsWith(".h")) {

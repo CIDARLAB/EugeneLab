@@ -30,10 +30,14 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.cidarlab.eugene.dom.Component;
 import org.cidarlab.eugene.dom.imp.container.EugeneCollection;
 import org.cidarlab.eugene.exception.EugeneException;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- *
+ * The EugeneLabServlet represents the Back-End of the EugeneLab Web Application.
+ * It processes HTTP GET and POST requests. The data exchange is based on JSON 
+ * notation.
+ * 
  * @author Ernst Oberortner
  */
 public class EugeneLabServlet 
@@ -174,23 +178,30 @@ public class EugeneLabServlet
         // retrieve the username from the session information
         String username = this.getUsername(request.getCookies());
         
-//        LOGGER.warn("[processGetRequest] -> " + command + ", " + username+ ", " +request.getSession().getId());
-        
         try {
             if ("getFileList".equalsIgnoreCase(command)) {
-            	// OK
-                out.write(this.getFiles(username));
+            	
+            	// we build a tree that contains all files (as nodes) 
+            	// of the user's HOME directory.
+            	out.write(this.buildFileTree(username));
 
             } else if ("read".equalsIgnoreCase(command)) {
 
             } else if ("getLibrary".equalsIgnoreCase(command)) {
             	
+            	// we build a tree that contains all files (as nodes) 
+            	// of the current user's library.
             	out.write(this.buildLibraryTree(username, request.getSession().getId()));
             	
             } else if ("loadFile".equalsIgnoreCase(command)) {
+            	
+            	// we read the requested files content and
+            	// return it's content as string encapsulated 
+            	// in a JSON object
                 response.setContentType("text/html;charset=UTF-8");
                 String fileName = request.getParameter("fileName");
                 String toReturn = loadFile(username, fileName);
+                
                 out.write(toReturn);
             }
         } catch (Exception e) {
@@ -228,7 +239,7 @@ public class EugeneLabServlet
      */
     @Override
     public String getServletInfo() {
-        return "Short description";
+        return "This is the EugeneLabServlet. The Back-End of the EugeneLab Web Application.";
     }
     // </editor-fold>
 
@@ -250,8 +261,6 @@ public class EugeneLabServlet
 	            // get the command
 	        	String command = request.getParameter("command");
 
-	        	LOGGER.warn("[processPostRequest] username: " + username+", command: "+ command);
-	        	
 	        	/*---------------------------------
 	        	 *  FILE HANDLING requests
 	        	 *--------------------------------*/
@@ -292,10 +301,19 @@ public class EugeneLabServlet
 
     }
 
-    // Returns a JSON Array (represented as String) 
-    // with the name of a file/directory and if it is a file
-    // {"title": name, "isFolder": true/false}
-    private String getFiles(String username) {
+    /**
+     * The buildFileTree/2 method builds the dynatree JSON array
+     * in order to display all library elements (i.e. parts and 
+     * devices) on the Front-End.
+     * 
+     * @param username   ... the current username
+     * @param sessionId  ... the user's session
+     * 
+     * @return   ... a String that represents the dynatree JSON array
+     * 
+     * @throws EugeneException
+     */
+    private String buildFileTree(String username) {
     	
         String home = Paths.get(
         		//this.getServletContext().getRealPath(""), 
@@ -313,18 +331,30 @@ public class EugeneLabServlet
         	new File(home).mkdir();
         }
         
-        // Lazy loading
+        // Lazy loading of the TreeBuilder
 		if(null == this.treeBuilder) {
 			this.treeBuilder = new TreeBuilder();
 		}
 
-		LOGGER.warn(home);
-		String filetree = this.treeBuilder.buildFileTree(home).toString();
-		LOGGER.warn(filetree);
-		
-		return filetree;
+		JSONArray jArray = this.treeBuilder.buildFileTree(home);
+		if(null != jArray) {
+			return jArray.toString();
+		} 
+		return null;
     }
     
+    /**
+     * The buildLibraryTree/2 method builds the dynatree JSON array
+     * in order to display all library elements (i.e. parts and 
+     * devices) on the Front-End.
+     * 
+     * @param username   ... the current username
+     * @param sessionId  ... the user's session
+     * 
+     * @return   ... a String that represents the dynatree JSON array
+     * 
+     * @throws EugeneException
+     */
     private String buildLibraryTree(String username, String sessionId) 
     		throws EugeneException {
     	
@@ -342,11 +372,182 @@ public class EugeneLabServlet
         	}
         }
 		
-   		return this.treeBuilder.buildLibraryTree(library).toString();
+		JSONArray jArray = this.treeBuilder.buildLibraryTree(library);
+		if(null != jArray) {
+			return jArray.toString();
+		} 
+		
+		return null;
     }
 
+    
+    /**
+     * The getEugeneAdapter/2 method returns the EugeneAdapter object of 
+     * the current user. Therefore, it checks the eugeneInstances hash map 
+     * if the current user has a EugeneAdapter object already. If a 
+     * EugeneAdapter object for the current user exist, then it returns it.
+     * Otherwise, it creates a new EugeneAdapter object, stores it in the 
+     * eugeneInstances hash map, and returns it.
+     * 
+     * @param username   ... the username of the current user
+     * @param sessionId  ... the sessionID of the current user's session
+     * 
+     * @return  ... an instance of the EugeneAdapter class
+     * 
+     * @throws EugeneException
+     */
+    private EugeneAdapter getEugeneAdapter(String username, String sessionId) 
+    		throws EugeneException {
+
+    	EugeneAdapter ea = this.eugeneInstances.get(username);
+    	
+    	// if the current user has created a EugeneAdapter object already,
+    	// then we return it
+    	if(null != ea) {
+    		return ea;
+    	}
+    	
+    	// if no EugeneAdapter exists, then we create one
+    	ea = new EugeneAdapter(username, 
+    			sessionId, 
+    			this.getUserHomesDirectory(), 
+    			this.getTmpImageDirectory());
+    	// store it in the eugeneInstances hash map
+    	this.eugeneInstances.put(username, ea);
+    	// and return it
+    	return ea;
+    }
+    
+    /**
+     * The executeEugene/1 method executes the Eugene script 
+     * that the user typed into the large textarea.
+     * 
+     * @param username  ... the current user logged in
+     * @param script    ... the Eugene script
+     * @param session   ... the HTTP session object
+     * 
+     * @return  a JSONObject containing all relevant display data
+     *          for the EugeneLab Front-End
+     *          
+     * @throws EugeneException
+     */
+    private JSONObject executeEugene(String username, String script, HttpSession session) 
+    		throws EugeneException {
+    	
+    	JSONObject jsonResponse = new JSONObject();
+    	
+    	try {
+    		EugeneAdapter ea = this.getEugeneAdapter(username, session.getId());
+    		
+    		Collection<Component> components = ea.executeScript(script);
+    		
+    		// visualize the outcome using SBOL visual compliant glyphs
+    		// therefore, we use Pigeon
+    		if(null != components && !components.isEmpty()) {
+    			
+    			/*
+    			 * first, we convert the Collection into a EugeneCollection
+    			 * 
+    	    	 * whoever reads those lines, please enhance this!
+    	    	 * ie Eugene should return a EugeneCollection already!
+    			 */
+        		EugeneCollection col = new EugeneCollection(UUID.randomUUID().toString());
+        		col.getElements().addAll(components);
+        		
+    			
+	    		/*
+	    		 * pigeonize the collection and 
+	    		 * return the URI of the generated pigeon image
+	    		 */
+    			jsonResponse.put("pigeon-uri", ea.pigeonize(col, MAX_VISUAL_COMPONENTS));
+    			
+    			/*
+    			 * SBOL XML/RDF serialization
+    			 */
+    			jsonResponse.put("sbol-xml-rdf", ea.SBOLize(col));
+    		}
+    		
+    		jsonResponse.put("eugene-output", ea.getEugeneOutput());
+
+    	} catch(Exception e) {
+    		throw new EugeneException(e.toString());
+    	}
+    	
+    	return jsonResponse;
+    }
+    
+    
+    
+    
+    /*------------------------------
+     * SESSION MANAGEMENT 
+     *-----------------------------*/
+
+    // the DEFAULT_FREE_USER denotes the username 
+    // if the current EugeneLab client hits the 
+    // "Try it for free!" button
+    private static final String DEFAULT_FREE_USER = "no_name_user";
+    
+    private String getUsername(Cookie[] cookies) {
+    	
+        String username = this.getDefaultUser();
+        if(null != cookies) {
+	    	for(Cookie c : cookies) {
+	    		if("user".equalsIgnoreCase(c.getName())) {
+	    			return c.getValue();
+	    		}
+	    	}
+        }
+
+    	return username;
+    }
+    
+    private String getDefaultUser() {
+        return DEFAULT_FREE_USER;
+    }
+
+
+    /*-------------------------------------------------
+     * FILE HANDLING METHODS
+     *-------------------------------------------------*/
+    
+    /**
+     * The saveFile/3 method saves the provided fileContent into the 
+     * specified file of the current user.
+     * 
+     * @param username   ... the username of the current user
+     * @param fileName   ... the filename of the file to be overwritten
+     * @param fileContent  ... the new content of the file
+     * 
+     * @throws EugeneException
+     */
+    private void saveFile(String username, String fileName, String fileContent) 
+    		throws EugeneException {
+        String currentFileExtension = getFileExtension(username, "/" + fileName, true);
+        File file = new File(currentFileExtension);
+        try {
+	        BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsoluteFile()));
+	        bw.write(fileContent);
+	        bw.flush();
+	        bw.close();
+        } catch(Exception e) {
+        	throw new EugeneException(e.getLocalizedMessage());
+        }
+    }
+
+    /**
+     * The loadFile/2 method reads the content of the specified 
+     * fileName of the current user's HOME directory. It returns 
+     * the file content as a String.
+     * 
+     * @param username  ... the current user
+     * @param fileName  ... the name of the file to be loaded
+     * @return ... the content of the file encapsulated in a String object
+     * @throws Exception
+     */
     private String loadFile(String username, String fileName) 
     		throws Exception {
+    	
        	return new String(Files.readAllBytes(
        						Paths.get(
        								//this.getServletContext().getRealPath(""), 
@@ -356,8 +557,12 @@ public class EugeneLabServlet
     }
     
     /**
+     * The uploadFile/1 method serves for processing file upload
+     * requests. It stores the uploaded file in the 
+     * current user's HOME directory
      * 
-     * @param request
+     * @param request  ... the request that contains the file to upload
+     * 
      * @throws Exception
      */
     private void uploadFile(HttpServletRequest request) 
@@ -367,7 +572,9 @@ public class EugeneLabServlet
         String username = this.getUsername(request.getCookies());
     	
     	/*
-    	 * FILE UPLOAD
+    	 * we do the file upload using 
+    	 * Java7's File IO libraries. therefore, we 
+    	 * need to initialize them first.
     	 */
     	if(null == this.factory) {
     		this.factory = new DiskFileItemFactory();
@@ -417,11 +624,16 @@ public class EugeneLabServlet
             }
         }
     }
-    
+
     /**
+     * The createFile/2 method serves for processing createFile 
+     * request. It receives the current user's username, and 
+     * the desired filename. It creates the new file in the 
+     * user's HOME directory 
      * 
-     * @param folder
-     * @param filename
+     * @param username  ... the current user's username
+     * @param filename  ... the desired filename
+     * 
      * @throws IOException
      */
     private void createFile(String username, String filename) 
@@ -429,138 +641,35 @@ public class EugeneLabServlet
     	
     	Files.createFile(
     			Paths.get(
-    					//this.getServletContext().getRealPath(""), 
     					USER_HOMES_DIRECTORY, 
     					username, 
     					filename));
-    	
     }
 
     /**
+     * The deleteFile/2 method serves for processing deleteFile 
+     * requests. It receives the current user's username (in order 
+     * to detect the user's HOME directory) and the filename 
+     * of the file that should be deleted.
      * 
-     * @param folder
-     * @param filename
+     * @param username  ... the current user
+     * @param filename  ... the filename of the file to delete
+     * 
      * @throws IOException
      */
     private void deleteFile(String username, String filename) 
     		throws IOException {
     	
-    	LOGGER.warn("[deleteFile] -> " + username+", "+filename);
-    	
     	Files.deleteIfExists(
     			Paths.get(
-    					//this.getServletContext().getRealPath(""), 
     					USER_HOMES_DIRECTORY, 
     					username, 
     					filename));
     	
     }
-    
-    
-    private EugeneAdapter getEugeneAdapter(String username, String sessionId) 
-    		throws EugeneException {
-
-    	EugeneAdapter ea = this.eugeneInstances.get(username);
-    	if(null != ea) {
-    		return ea;
-    	}
-    	
-    	/*
-    	 * if no EugeneAdapter exists, then we create one
-    	 */
-    
-    	ea = new EugeneAdapter(username, sessionId, this.getUserHomesDirectory(), this.getTmpImageDirectory());    	
-    	this.eugeneInstances.put(username, ea);
-    	return ea;
-    }
-    
-    /**
-     * The executeEugene/1 method executes the Eugene script 
-     * that the user typed into the large textarea.
-     * 
-     * @param username  ... the current user logged in
-     * @param script    ... the Eugene script
-     * @param session   ... the HTTP session object
-     * 
-     * @return  a JSONObject containing all relevant display data
-     *          for the EugeneLab Front-End
-     *          
-     * @throws EugeneException
-     */
-    private JSONObject executeEugene(String username, String script, HttpSession session) 
-    		throws EugeneException {
-    	
-    	System.out.println("[EugeneLabServlet.executeEugene] " + username + ", " + session.getId());
-    	
-    	JSONObject jsonResponse = new JSONObject();
-    	
-    	try {
-    		EugeneAdapter ea = this.getEugeneAdapter(username, session.getId());
-    		
-    		Collection<Component> components = ea.executeScript(script);
-    		
-    		// visualize the outcome using SBOL visual compliant glyphs
-    		// therefore, we use Pigeon
-    		if(null != components && !components.isEmpty()) {
-    			
-    			/*
-    			 * first, we convert the Collection into a EugeneCollection
-    			 * 
-    	    	 * whoever reads those lines, please enhance this!
-    	    	 * ie Eugene should return a EugeneCollection already!
-    			 */
-        		EugeneCollection col = new EugeneCollection(UUID.randomUUID().toString());
-        		col.getElements().addAll(components);
-        		
-    			
-	    		/*
-	    		 * pigeonize the collection and 
-	    		 * return the URI of the generated pigeon image
-	    		 */
-    			jsonResponse.put("pigeon-uri", ea.pigeonize(col, MAX_VISUAL_COMPONENTS));
-    			
-    			/*
-    			 * SBOL XML/RDF serialization
-    			 */
-    			jsonResponse.put("sbol-xml-rdf", ea.SBOLize(col));
-    		}
-    		
-    		jsonResponse.put("eugene-output", ea.getEugeneOutput());
-
-    	} catch(Exception e) {
-    		throw new EugeneException(e.toString());
-    	}
-    	
-    	return jsonResponse;
-    }
-    
-//    private Collection<Component> getRandomComponents(Collection<Component> components, int MAX) {
-//    	Collection<Component> lst = new ArrayList<Component>(MAX);
-//    	Iterator<Component> it = components.iterator();
-//    	for(int i=0; i<MAX; i++) {
-//    		lst.add(it.next());
-//    	}
-//    	return lst;
-//    }
-
-    private void saveFile(String username, String fileName, String fileContent) 
-    		throws EugeneException {
-        String currentFileExtension = getFileExtension(username, "/" + fileName, true);
-        File file = new File(currentFileExtension);
-        try {
-	        BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsoluteFile()));
-	        bw.write(fileContent);
-	        bw.flush();
-	        bw.close();
-        } catch(Exception e) {
-        	throw new EugeneException(e.getLocalizedMessage());
-        }
-    }
 
     private String getFileExtension(String username, String localExtension, boolean isFile) {
-        //String extension = this.getServletContext().getRealPath("/") + "/data/" + getCurrentUser() + "/" + localExtension;
         String extension = Paths.get(
-        		//this.getServletContext().getRealPath(""), 
         		USER_HOMES_DIRECTORY, 
         		username, 
         		localExtension).toString();
@@ -571,39 +680,4 @@ public class EugeneLabServlet
         
         return extension;
     }
-    
-    
-    
-    /*------------------------------
-     * Session Management methods
-     * 
-     *  not sure yet if we should introduce a separate 
-     *  class for this?!
-     *-----------------------------*/
-
-    // the DEFAULT_FREE_USER denotes the username 
-    // if the current EugeneLab client hits the 
-    // "Try it for free!" button
-    private static final String DEFAULT_FREE_USER = "no_name_user";
-    
-    private String getUsername(Cookie[] cookies) {
-    	
-        String username = this.getDefaultUser();
-        if(null != cookies) {
-	    	for(Cookie c : cookies) {
-	    		if("user".equalsIgnoreCase(c.getName())) {
-	    			return c.getValue();
-	    		}
-	    	}
-        }
-
-    	return username;
-    }
-    
-    
-    private String getDefaultUser() {
-        return DEFAULT_FREE_USER;
-    }
-
-
 }

@@ -288,8 +288,7 @@ public class EugeneAdapter {
     		throws EugeneException {
 
     	try {
-//            Logger.warn("got image : " + buff.toString());
-            Iterator iter = ImageIO.getImageWritersByFormatName("png");
+            Iterator<ImageWriter> iter = ImageIO.getImageWritersByFormatName("png");
             ImageWriter writer = (ImageWriter)iter.next();
             ImageWriteParam iwp = writer.getDefaultWriteParam();
 

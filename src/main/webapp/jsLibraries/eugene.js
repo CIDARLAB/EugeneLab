@@ -224,8 +224,8 @@ CodeMirror.defineMode("eugene", function(config, parserConfig) {
 
     CodeMirror.defineMIME("eugene", {
         name: "eugene",
-        keywords: words("boolean num txt PartType Property Rule Device include import Collection Array " +
-                "return ON on NOT not " +
+        keywords: words("boolean bool num txt PartType Property Rule Device Collection Array " +
+                "return ON on NOT not AND and OR or XOR xor " +
                 "MORETHAN morethan CONTAINS contains EXACTLY exactly EQUALS equals SAME_COUNT same_count "+
                 "WITH with THEN then " +
                 "AFTER after ALL_AFTER all_after SOME_AFTER some_after "+
@@ -236,8 +236,8 @@ CodeMirror.defineMode("eugene", function(config, parserConfig) {
                 "REVERSE reverse ALL_REVERSE all_reverse SOME_REVERSE some_reverse "+
                 "ALTERNATE_ORIENTATION alternate_orientation "),
         // built-in functions and imperative features of Eugene
-        builtin: words("if IF elseif ELSEIF else ELSE for FOR "+
-        		"SAVE save STORE store RANDOM random PIGEON pigeon SIZEOF sizeof "+
+        builtin: words("if IF elseif ELSEIF else ELSE for FOR while WHILE include INCLUDE import IMPORT "+
+        		"SAVE save STORE store RANDOM random PIGEON pigeon SIZEOF sizeof SIZE size "+
         		"print PRINT println PRINTLN product PRODUCT permute PERMUTE " +
         		"import IMPORT export EXPORT"),
         blockKeywords: words("if elseif else for"),

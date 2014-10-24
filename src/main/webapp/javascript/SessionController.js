@@ -11,6 +11,7 @@ $(document).ready(function() {
 		// -> default user
 		// disable buttons
 		if(cookie === null || cookie === '') {
+			
 		    $('#btnNewFile').attr("disabled", "disabled");
 		    $('#btnNewFile').prop("disabled", true);
 		    
@@ -22,6 +23,17 @@ $(document).ready(function() {
 
 		    $('#btnSave').attr("disabled", "disabled");
 		    $('#btnSave').prop("disabled", true);
+		    
+		    // disable the library tree
+		    $('#libraryTree').removeClass("active");
+		    $('#libraryTree').prop("disable", true);
+		    $('#libraryTree').attr("disable", "disabled");
+		    
+		    $('#libraryTreeLink').prop("disable", true);
+		    $('#libraryTreeLink').removeAttr("href");
+		    $('#libraryTreeLink').attr("disable", "disabled");
+		    
+		    $('#fileTree').addClass("active");
 		    
 		} else {
 			// the user is logged in, 

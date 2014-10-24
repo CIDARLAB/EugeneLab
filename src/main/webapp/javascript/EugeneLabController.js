@@ -187,6 +187,9 @@ $(document).ready(function() {
         });
     };
 
+    /*
+     * LIBRARY TREE
+     */
     var loadLibraryTree = function() {
         $("#libraryArea").html("");
 
@@ -208,8 +211,10 @@ $(document).ready(function() {
             $('#libraryArea').dynatree("getTree").reload();
         });
     };
-    
-    //draw the file table tree based on users file contents
+
+    /*
+     * FILE TREE
+     */
     var loadFileTree = function() {
         $("#filesArea").html("");
         
@@ -232,8 +237,9 @@ $(document).ready(function() {
             
             $('#filesArea').dynatree("getTree").reload();
         });
+        
     };
-
+    
     var getActiveNode = function() {
         return $("#filesArea").dynatree("getActiveNode");
     };

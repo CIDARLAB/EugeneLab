@@ -61,33 +61,34 @@
 
         <div class="row-fluid">
             <div class="span2" >
-                <!-- <div class="span2 well"> -->
                  <div class="tabbable">
                       <ul id="leftTabHeader" class="nav nav-tabs">
-                          <!-- PARTS TYPE --- INACTIVE AT THE MOMENT -->
-                              
-                          <li class="active"><a href="#libraryTab" data-toggle="tab">Library</a></li> 
-                          <li><a href="#filesTab" data-toggle="tab">Files</a></li>
+                          <li id="libraryTree" class="active"><a href="#libraryTab" id="libraryTreeLink" data-toggle="tab">Library</a></li> 
+                          <li id="fileTree"><a href="#filesTab" id="fileTreeLink" data-toggle="tab">Files</a></li>
                           <li class="pull-right"><button id="refreshButton"><i class="icon-refresh"></i></button></li>
                       </ul>
                       
 
                 <div id="leftTabs" class="tab-content">
+                
+<!-- LIBRARY TAB -->             
   				<div class="tab-pane" id="libraryTab">      
 	                <div class ="row-fluid">
-    	            	<div id="libraryArea" style="height:400px"> </div>
+    	            	<div id="libraryArea" style="height:400px"> 
+    	            	</div>
 	    	        </div>
-            	    <!--   <div  class="tab-pane" id="partsListArea"></div> -->
-                 
-             <hr/>
-             </div>
+             		<hr/>
+             	</div>
              
-<!-- START -- FILE TAB -->             
+<!-- FILE TAB -->             
             <div class="tab-pane" id="filesTab">
                  <div class ="row-fluid">
-                	<div id="filesArea" style="height:400px"> </div>
-	            </div>
-    	        <br/>
+                	<div id="filesArea" style="height:400px"> 
+                	</div>
+	              </div>
+    	      <br/>
+    	      
+<!-- BUTTONS FOR FILE MANAGEMENT -->    	      
               <div class="row-fluid">
                   <div class="btn-group btn-group-vertical">
                       <button id="loadButton" class="btn btn-default" style="width:126px">Open File</button>

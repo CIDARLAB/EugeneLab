@@ -224,7 +224,7 @@ CodeMirror.defineMode("eugene", function(config, parserConfig) {
 
     CodeMirror.defineMIME("eugene", {
         name: "eugene",
-        keywords: words("boolean num txt PartType Property Rule Device include " +
+        keywords: words("boolean num txt PartType Property Rule Device include import Collection Array " +
                 "return ON on NOT not " +
                 "MORETHAN morethan CONTAINS contains EXACTLY exactly EQUALS equals SAME_COUNT same_count "+
                 "WITH with THEN then " +

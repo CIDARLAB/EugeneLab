@@ -309,15 +309,17 @@ public class EugeneAdapter {
      */
     public String getEugeneOutput() {
     	
-    	String output = this.baos.toString();
+    	return this.baos.toString();
     	
-    	// replacing all newlines with HTML newlines (i.e. <br/>)
-    	output = output.replaceAll("(\\r\\n|\\n)", "<br/>");
-    	
-    	// replacing all blanks with HTML blanks (i.e. &nbsp;)    	
-    	output = output.replaceAll("\\s", "&nbsp;");
-    	
-    	return output;
+//    	String output = this.baos.toString();
+//    	
+//    	// replacing all newlines with HTML newlines (i.e. <br/>)
+//    	output = output.replaceAll("(\\r\\n|\\n)", "<br/>");
+//    	
+//    	// replacing all blanks with HTML blanks (i.e. &nbsp;)    	
+//    	output = output.replaceAll("\\s", "&nbsp;");
+//    	
+//    	return output;
     }
 	
 	/**

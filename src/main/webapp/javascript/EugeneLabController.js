@@ -749,7 +749,7 @@ $(document).ready(function() {
                     	// active the console tab in order to
                 		// display the output in the console
                 		$('#console').addClass("active");
-                		$('#outputConsoleArea').html(response['eugene-output']);
+                		$('#outputConsoleArea').html('<textarea readonly>' + response['eugene-output'] + '</textarea>');
                     	$("#outputConsoleArea").attr("class", "alert alert-success");
                 		$('#outputConsoleTab').addClass("active");                		
                 		

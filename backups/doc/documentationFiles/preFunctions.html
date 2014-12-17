@@ -1,0 +1,53 @@
+
+                        
+                        <div id="predefined_func">
+                            <h3>Pre-Defined Functions</h3>
+                            <center>on Synthetic Biological Components</center>
+                            <div>
+                                <center><strong>add(element)</strong></center>
+                                The add() function appends the specified element to the list of a component's elements.<br/>
+                                Examples:<br/>
+                                // add the Strength Property to the Promoter Part Type <br/>
+                                Property Strength(num); <br/>
+                                Promoter.add(Strength); <br/>
+                                // add the Promoter Part Type to the hybridDevice hybridDevice.add(Promoter);<br/>
+                            </div>
+                            <div>
+                                <center><strong>get(idx)</strong></center>
+                                The get() function has one parameter that specifies the position of the element which should be returned. The indexing of the elements starts with the index 0.<br/>
+                                Examples: <br/>
+                                // get the first element of the abstractDevice, i.e., Promoter <br/>
+                                abstractDevice.get(0); <br/>
+                                // get the i-th element (i.e., the 4th) of the arrayDevices <br/>
+                                num i = 3; <br/>
+                                arrayDevices.get(i);<br/>
+                            </div>
+                            <div>
+                                <center><strong>remove(idx)</strong></center>
+                                The remove() function takes on parameter which specifies to index of the element that should be deleted from the list of elements.<br/>
+                                Examples: <br/>
+                                // delete the first element of the abstractDevice (i.e. the Promoter) <br/>
+                                abstractDevice.remove(0); <br/>
+                                // delete the second Property of the Promoter Part Type (i.e., RelativeStrength) <br/>
+                                Promoter.remove(1);<br/>
+                            </div>
+                            <div>
+                                <center><strong>size()</strong></center>
+                                The size() function returns the size of the component. The returned value can be assigned or compared to a variable. <br/>
+                                Examples:  <br/>
+                                // the following statement returns 4  <br/>
+                                abstractDevice.size();  <br/>
+                                // assign the size of the arrayDevices array to the nSize variable  <br/>
+                                num nSize = arrayDevices.size(); <br/>
+                            </div>
+                            <div>
+                                <center><strong>toSequence()</strong></center>
+                                The toSequence() function returns a txt value that represents the DNA sequence of the biological component. If the toSequence() function is utilized on a device instance, the function returns the DNA sequence of the assembled Device. For abstract and hybrid devices, the toSequence() function inserts placeholders for the Part Types. <br/>
+                                Example: <br/>
+                                // print the sequence of the concreteDevice to the console <br/>
+                                print("DNA sequence of the concreteDevice:", concreteDevice.toSequence()); <br/>
+                                // assign the sequence of the hybridDevice to the sequence txt variable <br/>
+                                txt sequence = hybridDevice.toSequence();<br/>
+                            </div>
+                        </div>
+                        <hr/>

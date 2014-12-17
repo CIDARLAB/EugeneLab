@@ -99,6 +99,9 @@ $(document).ready(function() {
 		if(document.location.pathname == '/EugeneLab/index.html') {
 			// disable the "Try it for free!" button
 			$('#tryIt').html('');
+			
+			// forward the user to the eugenelab.html site
+			window.location.replace('eugenelab.html');
 		}
 	} else if (getCookie("authenticate") === "failed") {
 		window.location.replace("index.html");

@@ -239,7 +239,7 @@ CodeMirror.defineMode("eugene", function(config, parserConfig) {
         builtin: words("if IF elseif ELSEIF else ELSE for FOR while WHILE include INCLUDE import IMPORT "+
         		"SAVE save STORE store RANDOM random PIGEON pigeon SIZEOF sizeof SIZE size "+
         		"print PRINT println PRINTLN product PRODUCT permute PERMUTE " +
-        		"import IMPORT export EXPORT"),
+        		"import IMPORT export EXPORT visualize VISUALIZE"),
         blockKeywords: words("if elseif else for"),
         atoms: words("true false"),
         hooks: {

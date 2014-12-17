@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>EugeneLab</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="shortcut icon" href="images/icon.ico?v2">
+        <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+        <link href="css/bootstrap-responsive.min.css" rel="stylesheet" media="screen">
+    </head>
+    <script src="documentationFiles/jquery-1.11.0.min.js"> </script>
+    <script src = "documentationFiles/controller.js"> </script>
+
+    <body data-spy="scroll" data-target="#sidebar" >
+
+        <div class="navbar navbar-fixed-top">
+            <div class="navbar-inner"> 
+            	<a class="brand" href="index.html">EugeneLab</a>
+                <ul class="nav">
+                    <li><a href="eugenelab.html">Design</a></li>
+                    <li><a href="documentation.html">How-To</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+                <div id="loginArea">
+                	<form id="loginForm" class="navbar-form pull-right" action="AuthenticationServlet" method="POST">
+                        <input name="user" type="text" class="span2" placeholder="Login">
+                        <input name="password" type="password" class="span2" placeholder="Password">
+                        <input type="submit" value="Login" class="btn"/>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-header" style="margin-top:50px">
+            <h1 style="text-align:center;"><small>Learn how Eugene can help you today</small></h1>
+        </div>
+
+        <!-- NAVIGATION TOOL ON LEFT HAND SIDE OF SCREEN -->
+        <div class="span2">
+            <div id="sidebar">
+                <ul class="nav nav-list affix">
+                    <li class="nav-header">Getting Started</li>
+                    <li id = "downloadRun" class="active"><a href = "#">Download and Run</a></li>
+                    <li class="nav-header"><a href = "#">Language Features</a></li>
+                    <li id = "basic_syntax"><a href = "#">Basic Syntax</a></li>
+                    <li id = "dataio"><a href = "#">Data Import and Export</a></li>
+                    <li id = "domainConcepts"><a href = "#">Domain-Specific Concepts</a></li>
+                    <li id = "controlFlow"><a href = "#">Control Flow</a></li>
+                    <li id = "dynamicNaming"><a href = "#">Dynamic Naming</a></li>
+                    <li id = "rules"><a href = "#">Rules</a></li>
+                    <li id = "preFunctions"><a href = "#">Pre-defined Functions</a></li>
+                    <li id = "combinatorialFunctions"><a href = "#">Combinatorial Functions</a></li>
+                    <li id = "directionality"><a href = "#">Directionality</a></li>
+                    <li id = "invertase"><a href="#">Invertase-based Designs</a></li>
+                    <li id = "regulatoryInteractions"><a href = "#">Regulatory Interactions</a></li>
+                    <li id = "vis"><a href = "#">Visualization</a></li>
+                    <li class="nav-header" id = "example"><a href="#">Examples</a></li>
+                    <li class="nav-header" id = "tools"><a href="#">Tools</a></li>
+                    <li class="nav-header" id = "publications"><a href="#">Publications</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="span10">
+            <div class="row-fluid" id = "content" style = "margin-left:15px;">
+
+                <!-- The content gets filled in here based on what you click on the left hand side-->
+
+             </div>
+        </div>
+
+   
+
+        <!--scripts placed at the end to enhance page loading speed--> 
+        <script type="text/javascript" src="jsLibraries/jquery-1.9.1.min.js"></script> 
+        <script src="jsLibraries/bootstrap.min.js"></script>
+        
+		<!--  Footer (BU + License) -->
+        <div class = "span2"></div>
+        <div class = "span10" style = "text-align:center">
+	        CIDAR Group, Dept. of Electrical and Computer Engineering, Boston University, 2014
+			<br/>
+	        <!--  Licencse -->
+	        <a rel="license" href="http://creativecommons.org/licenses/by/4.0/deed.en_US">
+        		<img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by/4.0/88x31.png" />
+	        </a>
+	        <br/>
+	        This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/deed.en_US">Creative Commons Attribution 4.0 International License</a>.
+		</div>
+    
+    </body>
+</html>

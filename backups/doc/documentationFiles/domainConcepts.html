@@ -1,0 +1,121 @@
+                 
+                  <div id="dsc">
+                    <h4>Domain-Specific Control</h4>
+                    <div>
+                         <center><p><strong>Declarations of Properties</strong></p></center>
+                         <p>Properties are significant labels for primitives to be associated with Parts and Part Types. Property definitions must specify a primitive type.</p>
+                         <div>
+                             Property Sequence(txt);<br/>
+                             Property RelativeStrength(num);<br/>
+                             Property Letters(txt[]);<br/>
+                             Property Numbers(num[]);<br/>
+                             Property Bool(boolean);
+                         </div>
+                    </div>
+                    
+                    <div>
+                        <center><p><strong>Declarations of Components</strong></p></center>
+                        <p>Eugene provides various types of components of different levels of abstraction, i.e., Device, Part Type, and Part. Devices and Parts have one pre-defined attribute, i.e. sequence, and various pre-defined operations, such as toSequence() or size().</p>
+                        <div>
+                            <center><p>Part Type</p></center>
+                            <p>Part Types represent types of standard biological parts, such as promoters, ribosome binding sites, or terminators. Part Types do not construct any parts, but rather specify the structure and properties of part that can be constructed. All properties referenced by a Part Type definition must be defined before the Part Type's definition.</p>
+                            <div>
+                                Part Promoter(Sequence, RelativeStrength, Letters, Numbers, Bool);<br/>
+                                Part RBS(Sequence);<br/>
+                                Part Gene(Sequence);<br/>
+                                Part Terminator(Sequence);
+                            </div>
+                            <br/>
+                            <center><p>Device</p></center>
+                            <p>Devices represent a composite of standard biological parts and/or other devices. In a device declaration, the same part and/or device can be used more than once. Eugene allows synthetic biologist to specify abstract, instantiated, and hybrid synthetic devices. Abstract devices are only assembled of part types, such as promoters, ribosome binding sites, or terminators. Hybrid devices are devices that are assembled of other devices, part types, and parts.</p>
+                            <div>
+                                Device emptyDevice();<br/>
+                                Device abstractDevice (Promoter, RBS, Gene, Terminator);<br/>
+                                Device hybridDevice (abstractDevice, pBad, CI, BBa_B0010, pCI, Reporter, Terminator);
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="well">
+                    <center><p><strong>include</strong></p></center>
+                    <p>Eugene allows to include Eugene scripts into a Eugene script, regardless where in the code. Therefore, the include statement can be used, where the path of the included Eugene scripts must be specified if they are located in a different folder. </p>
+                    <p>The include statement can take multiple Eugene scripts that must be specified in a comma-separated list.</p>
+                        <div>
+                            include PropertyDefinition.h;<br/>
+                            include PartTypeDefinitions.h, MyFunctions.h;<br/>
+                            include ./path/to/MyDevices.eug;
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <center><p><strong>Instantiation of Part Types and Abstract Devices</strong></p></center>
+                        <center><p>Parts</p></center>
+                        <p>Part instantiations define instances of predefined Parts Types and assign concrete values to the Part Type's properties. Eugene provides two possibilities to set the property values of Parts:<br/>
+                            1.a comma-separated list of values can be specified, by specifying the property values in the same order as specified in the Part Type declaration.<br/>
+                            2.the name of the properties can be specified to which the given value should by assigned to.<br/>
+                            The property values of a part can be accessed using the 'dot' operator by first specifying the part name, followed by a dot ('.'), and the desired name of the property.
+                        </p>
+                        <div>
+                            txt seq = "ATCG";<br/>
+                            Promoter p1(seq, 100, ["A", "B", "C"], [1, 2, 3], true);<br/>
+                            Promoter p2(.RelativeStrength(20), .Sequence("GCTA"));<br/>
+                            RBS rbs1("CGAT");<br/>
+                            RBS rbs2();<br/>
+                            Gene RFP("GTCCTATA");<br/>
+                            Terminator t1();<br/>
+                            txt p1Seq = p1.Sequence; // p1Seq holds "ATCG"
+                        </div>
+                        <div>
+                        <center><center><p>Devices</p></center>
+                            <p>In Eugene, only abstract devices can be instantiated. Instantiated devices consists of parts, such as pLac or lacI. Each part must be an instance of the corresponding part type in the abstract device.<br/>
+                            Device concreteDevice(p2, rbs1, RFP, t1);<br/>
+                            Property values of devices can be accessed with the dot operator; however, the value is the union of the property values of its members returned as a list. If the property is a txt or num, a txt[] or a num[] is returned. If the property is a txt[] or a num[], a txt[] or a num[] is also returned that consists of the lists appended together. Individual members can be accessed by using square brackets and specifying an index. The first member is indexed at zero. Square brackets can be stacked in the case of devices within devices.<br/>
+                            <br/>
+                            txt[] d1Seq = d1.Sequence; //d1Seq holds ["ATCG", "ATCG", "CGAT"]<br/>
+                            txt rbs1Seq = d2[1][2].Sequence; // rbs1Seq holds "CGAT" <br/>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="well">
+                    <center><p><strong>Arrays of Synthetic Biological Components</strong></p></center>
+                    <p>
+                        Eugene offers facilities to declare arrays of Devices, Device Instances, Part Types, Part Instances and Properties. Every array of synthetic biological components can only contain elements of the corresponding biological component, for example, a Device[] array can only consist devices. Similar to num[] and txt[] arrays, the elements of arrays of synthetic biological components can be accessed by using squared brackets, where the index is zero-based. Arrays may access the built in functions get and size.
+                    </p>
+                        <div>
+                            Property[] arrayProperties = [Property1, Property2, … , PropertyN];<br/>
+                            PartType[] arrayPartTypes = [PartType1, PartType2, … , PartTypeN];<br/>
+                            Promoter[] arrayPromoters = [Promoter1, Promoter2, … , PromoterN];<br/>
+                            Device[] arrayDevices = [Device1, Device2, Device3, … , DeviceN];
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <center><p><strong>Declaring Functions</strong></p></center>
+                        <p>Equivalently to the C programming language, Eugene provides facilities to declare function prototypes. A function is a named block of Eugene statements that performs a certain task and can return some value to its invoker.</p>
+                        <div>
+                            // in the following we declare a function prototype which<br/>
+                            // gets as parameter a num[] array and prints its values<br/>
+                            // in reverse order by using Eugene's print() function<br/>
+                            function reversePrint(num[] arrayNum) {<br/>
+                                if(arrayNum.size()-1>=0) {<br/>
+                                    for(num i=arrayNum.size()-1;i>=0;i++) {<br/>
+                                        print(“arrayNum[“,i,”]: ”,arrayName[i]);<br/>
+                                    }<br/>
+                                }<br/>
+                            }
+                        </div>
+                    </div>
+                  
+                     <div class="well">
+                        <center><p><strong>Calling a Function</strong></p></center>
+                        <p>In order to execute a function prototype, the function must be called. In Eugene, a function can be executed (called) multiple times, from various places during a single execution of a Eugene script.
+                            <br/>Note: Currently, Eugene does not support recursive function calls.</p>
+                        <div>
+                            // call the reversePrint() function to print the values<br/>
+                            // of the arrayNum2 array in reverse order<br/>
+                            reversePrint(arrayNum2);
+                        </div>
+                     </div>
+                  </div>
+                  <hr/>

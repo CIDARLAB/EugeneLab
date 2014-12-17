@@ -1,61 +1,57 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>org.cidarlab</groupId>
-  <artifactId>EugeneLab</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <packaging>war</packaging>
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.cidarlab</groupId>
+	<artifactId>EugeneLab</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>war</packaging>
   
-  
-  <build>
-    <sourceDirectory>src/main/java</sourceDirectory>
-    <plugins>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.1</version>
-        <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
-        </configuration>
-      </plugin>
+	<build>
+	
+    	<sourceDirectory>src/main/java</sourceDirectory>
+    	
+    	<plugins>
+    	
+    		<!-- Maven's Java Compiler -->
+      		<plugin>
+        		<artifactId>maven-compiler-plugin</artifactId>
+        		<version>3.1</version>
+        		<configuration>
+          			<source>1.7</source>
+          			<target>1.7</target>
+        		</configuration>
+      		</plugin>
       
-      <plugin>
-        <artifactId>maven-war-plugin</artifactId>
-        <version>2.5</version>
-        <configuration>
-          <warSourceDirectory>src/main/webapp</warSourceDirectory>
-          <failOnMissingWebXml>false</failOnMissingWebXml>
-        </configuration>
-      </plugin>
+      		<!-- Packaging as war -->
+			<plugin>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.5</version>
+				<configuration>
+					<warSourceDirectory>src/main/webapp</warSourceDirectory>
+					<failOnMissingWebXml>false</failOnMissingWebXml>
+					<attachClasses>true</attachClasses>
+				</configuration>
+			</plugin>
 
-		<plugin>
-	        <groupId>org.codehaus.mojo</groupId>
-	        <artifactId>exec-maven-plugin</artifactId>
-	        <version>1.1</version>
-	        <executions>
-	          <execution><goals><goal>java</goal></goals></execution>
-	        </executions>
-	        <configuration>
-	          <mainClass>org.cidarlab.eugenelab.EugeneLabHandler</mainClass>
-	        </configuration>
-	    </plugin>
-      
-      
-		<plugin>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-maven-plugin</artifactId>
-			<version>9.2.3.v20140905</version>
-		  	<configuration>
-           		<webAppSourceDirectory>src/main/webapp</webAppSourceDirectory>
-				<classesDirectory>target/classes</classesDirectory>
-		  		<webAppConfig>
-            		<contextPath>/EugeneLab</contextPath>
-					<descriptor>src/main/webapp/WEB-INF/web.xml</descriptor>
-          		</webAppConfig>
-		  	</configuration>
-		</plugin>
+      		<!-- plugin for executing the EugeneLab project in Eclipse -->
+			<plugin>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-maven-plugin</artifactId>
+				<version>9.2.3.v20140905</version>
+		  		<configuration>
+           			<webAppSourceDirectory>src/main/webapp</webAppSourceDirectory>
+					<classesDirectory>target/classes</classesDirectory>
+		  			<webAppConfig>
+            			<contextPath>/EugeneLab</contextPath>
+						<descriptor>src/main/webapp/WEB-INF/web.xml</descriptor>
+          			</webAppConfig>
+		  		</configuration>
+			</plugin>
 		
-    </plugins>
-  </build>
+		</plugins>
+	</build>
   	
   	<repositories>
 	    <repository>
@@ -91,17 +87,18 @@
 			<version>1.7.4</version>
 		</dependency>
 
-		<!-- Loggin (using SLF4J) -->		
+    	<!--  SLF4J -->
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.7.7</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
-			<version>1.7.7</version>
-		</dependency>
+	        <groupId>org.slf4j</groupId>
+	        <artifactId>slf4j-api</artifactId>
+	        <version>1.7.5</version>
+	    </dependency>
+	
+	    <dependency>
+	        <groupId>org.slf4j</groupId>
+	        <artifactId>slf4j-simple</artifactId>
+	        <version>1.6.4</version>
+	    </dependency>
 
 		<!-- testing the servlet -->
 		<dependency>
@@ -134,14 +131,14 @@
 			<version>5.6.0.Final</version>
 		</dependency>
 
-		<!-- persistence -->
+		<!-- persistence
 		<dependency>
 			<groupId>javax.persistence</groupId>
 			<artifactId>persistence-api</artifactId>
 			<version>1.0.2</version>
-		</dependency>
+		</dependency -->
 
-
+		<!-- Link between persistence and DB  
 		<dependency>
 			<groupId>org.eclipse.persistence</groupId>
 			<artifactId>eclipselink</artifactId>
@@ -152,14 +149,14 @@
 					<artifactId>commonj.sdo</artifactId>
 				</exclusion>
 			</exclusions>
-		</dependency>
+		</dependency	-->
 		
-		<!--  database -->
+		<!--  database 
 		<dependency>
 			<groupId>org.apache.derby</groupId>
 			<artifactId>derby</artifactId>
 			<version>10.11.1.1</version>
-		</dependency>
+		</dependency	-->
 		
 		<!--  junit -->
 		<dependency>
@@ -175,12 +172,21 @@
 			<version>2.0.0-SNAPSHOT</version>
 		</dependency>
 		
+		<!-- dependency on WebAuthentication -->
 		<dependency>
-		    <artifactId>org</artifactId>
-		    <groupId>jacop</groupId>
-		    <version>4.1.0</version>
-		    <scope>system</scope>
-		    <systemPath>${basedir}/src/main/webapp/WEB-INF/lib/jacop-4.1.0.jar</systemPath>
+			<groupId>org.cidarlab</groupId>
+			<artifactId>WebAuthentication</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<type>war</type>
+			<!--  <classifier>classes</classifier -->
+		</dependency>
+		
+		 
+		<!-- JaCoP -->
+		<dependency>
+			<groupId>org</groupId>
+			<artifactId>jacop</artifactId>
+			<version>4.1.0</version>
 		</dependency>
 
       </dependencies>

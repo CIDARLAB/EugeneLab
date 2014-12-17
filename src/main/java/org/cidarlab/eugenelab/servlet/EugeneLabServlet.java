@@ -13,7 +13,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -241,7 +240,6 @@ public class EugeneLabServlet
     public String getServletInfo() {
         return "This is the EugeneLabServlet. The Back-End of the EugeneLab Web Application.";
     }
-    // </editor-fold>
 
     protected void processPostRequest(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
@@ -298,7 +296,6 @@ public class EugeneLabServlet
         writer.write(jsonResponse.toString());
         writer.flush();
         writer.close();
-
     }
 
     /**
@@ -439,32 +436,23 @@ public class EugeneLabServlet
     	try {
     		EugeneAdapter ea = this.getEugeneAdapter(username, session.getId());
     		
-    		Collection<Component> components = ea.executeScript(script);
+    		EugeneCollection components = ea.executeScript(script);
     		
+//    		System.out.println("[EugeneLabServlet.executeEugene] -> " + components);
     		// visualize the outcome using SBOL visual compliant glyphs
     		// therefore, we use Pigeon
-    		if(null != components && !components.isEmpty()) {
-    			
-    			/*
-    			 * first, we convert the Collection into a EugeneCollection
-    			 * 
-    	    	 * whoever reads those lines, please enhance this!
-    	    	 * ie Eugene should return a EugeneCollection already!
-    			 */
-        		EugeneCollection col = new EugeneCollection(UUID.randomUUID().toString());
-        		col.getElements().addAll(components);
-        		
+    		if(null != components && !components.getElements().isEmpty()) {
     			
 	    		/*
 	    		 * pigeonize the collection and 
 	    		 * return the URI of the generated pigeon image
 	    		 */
-    			jsonResponse.put("pigeon-uri", ea.pigeonize(col, MAX_VISUAL_COMPONENTS));
+    			jsonResponse.put("pigeon-uri", ea.pigeonize(components, MAX_VISUAL_COMPONENTS));
     			
     			/*
     			 * SBOL XML/RDF serialization
     			 */
-    			jsonResponse.put("sbol-xml-rdf", ea.SBOLize(col));
+    			jsonResponse.put("sbol-xml-rdf", ea.SBOLize(components));
     		}
     		
     		jsonResponse.put("eugene-output", ea.getEugeneOutput());
@@ -475,9 +463,6 @@ public class EugeneLabServlet
     	
     	return jsonResponse;
     }
-    
-    
-    
     
     /*------------------------------
      * SESSION MANAGEMENT 

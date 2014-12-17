@@ -1,4 +1,4 @@
-package org.cidarlab.eugene.test;
+package org.cidarlab.eugenelab.test;
 
 import static org.junit.Assert.*;
 

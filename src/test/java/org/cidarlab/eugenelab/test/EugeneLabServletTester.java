@@ -1,45 +1,26 @@
-package org.cidarlab.web.test;
+package org.cidarlab.eugenelab.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.io.IOException;
 
-import org.apache.http.auth.AuthSchemeProvider;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.AuthCache;
+import org.apache.http.Consts;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.CookieStore;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.config.Lookup;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
-import org.apache.http.Consts;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-
-import java.util.Map;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -110,30 +91,30 @@ public class EugeneLabServletTester {
 
 	}
 
-	@AfterClass
-	public static void tearDownAfterClass() 
-			throws Exception {
-	}
+//	@AfterClass
+//	public static void tearDownAfterClass() 
+//			throws Exception {
+//	}
 
-	@Before
-	public void setUp() 
-			throws Exception {
-	}
+//	@Before
+//	public void setUp() 
+//			throws Exception {
+//	}
 
-	@After
-	public void tearDown() 
-			throws Exception {
-	}
+//	@After
+//	public void tearDown() 
+//			throws Exception {
+//	}
 
-	@Test
-	public void testInitServletConfig() {
-		fail("Not yet implemented");
-	}
+//	@Test
+//	public void testInitServletConfig() {
+//		fail("Not yet implemented");
+//	}
 
-	@Test
-	public void testDoGetHttpServletRequestHttpServletResponse() {
-		fail("Not yet implemented");
-	}
+//	@Test
+//	public void testDoGetHttpServletRequestHttpServletResponse() {
+//		fail("Not yet implemented");
+//	}
 
 	@Test
 	public void testDoPostHttpServletRequestHttpServletResponse() {

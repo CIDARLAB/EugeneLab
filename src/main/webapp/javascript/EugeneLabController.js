@@ -424,6 +424,19 @@ $(document).ready(function() {
     		alert('Please create a new File first!');
     	}
     });
+    
+    /*---- 
+     * AUTO-SAVE
+     *----*/
+    /**
+    (function() {
+        setTimeout(function() {
+    		if(currentFile !== '') {
+    			$("#btnSave").trigger("click");
+    		}
+    	}, 10000);
+    })();
+    **/
 
 
     $('#deleteModalButton').click(function() {

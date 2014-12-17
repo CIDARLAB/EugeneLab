@@ -143,14 +143,14 @@ public class EugeneAdapter {
 	 * 
 	 * @throws EugeneException
 	 */
-	public Collection<Component> executeScript(String script) 
+	public EugeneCollection executeScript(String script) 
 			throws EugeneException {
 		
 		if(null != this.eugene) {
 			
     		this.baos.reset();
 
-			return this.eugene.executeScript(script);
+    		return this.eugene.executeScript(script);
 		}
 		
 		throw new EugeneException("Something went wrong!");
@@ -189,7 +189,7 @@ public class EugeneAdapter {
     		throws EugeneException {
 		
     	try {
-			
+    		
     		// visualize every single device of the collection
     		List<URI> uris = new ArrayList<URI>();
 			for(NamedElement ne : col.getElements()) {
@@ -242,34 +242,56 @@ public class EugeneAdapter {
 		String sbolFilename = col.getName() + ".sbol";
 		String sbolPath = IMAGE_DIRECTORY + "/" + sbolFilename;
 
-    	SBOLDocument doc = SBOLExporter.toSBOLDocument(col);
-
-    	/*
-    	 * now, we persist the SBOLDocument object
-    	 * to a file  
-    	 */
-    	this.serializeSBOL(doc, sbolPath);
-    	
+		try {
+			// convert the EugeneCollection into an in-memory
+			// SBOLDocument
+	    	SBOLDocument doc = SBOLExporter.toSBOLDocument(col);
+	
+	    	// then, we persist the SBOLDocument object
+	    	// to a file  
+	    	this.serializeSBOL(doc, sbolPath);
+	    	
+		} catch(EugeneException ee) {
+			
+			ee.printStackTrace();
+			
+			throw new EugeneException(ee.getLocalizedMessage());
+		}
+		
     	return "Download the SBOL file <a href=\"/EugeneLab/tmp/"+sbolFilename+"\">here</a>";    	
     }
     
-    
+    /**
+     * The serializeSBOL(SBOLDocument, String) method serializes an SBOLDocument object 
+     * into a file, specified by the String.  
+     * 
+     * @param document   ... The SBOLDocument object that contains all data in-memory regarding SBOL-compliant
+     * format.
+     * @param file  ... The name of the file (including path information) into that the in-memory data 
+     * should be persisted.
+     *  
+     * @throws EugeneException
+     */
 	private void serializeSBOL(SBOLDocument document, String file) 
 			throws EugeneException {
 
 		try {
-			// open a file stream
-			FileOutputStream fos;
 			File f = new File(file);
+			
+			// create directories
 			if(!f.getParentFile().exists()) {
 				f.getParentFile().mkdir();
 				f.getParentFile().mkdirs();
 			}
+			
+			// create the file
 			if (!f.exists()) {
 				f.createNewFile();
 			}
-			fos = new FileOutputStream(f);
-	
+			
+			// open a file stream
+			FileOutputStream fos = new FileOutputStream(f);
+			
 			// write the document to the file stream
 			// using the SBOLFactory
 			SBOLFactory.write(document, fos);
@@ -283,7 +305,6 @@ public class EugeneAdapter {
 		}
 	}
 
-    
     private void writeToFile(RenderedImage buff, String savePath) 
     		throws EugeneException {
 
@@ -308,18 +329,7 @@ public class EugeneAdapter {
      * EUGENE OUTPUT
      */
     public String getEugeneOutput() {
-    	
     	return this.baos.toString();
-    	
-//    	String output = this.baos.toString();
-//    	
-//    	// replacing all newlines with HTML newlines (i.e. <br/>)
-//    	output = output.replaceAll("(\\r\\n|\\n)", "<br/>");
-//    	
-//    	// replacing all blanks with HTML blanks (i.e. &nbsp;)    	
-//    	output = output.replaceAll("\\s", "&nbsp;");
-//    	
-//    	return output;
     }
 	
 	/**

@@ -1,0 +1,16 @@
+
+                    <div id="dynamic_naming">
+                        <h4>Dynamic Naming</h4>
+                        <p>
+                            Dynamic naming will reduce the time it takes to write out all these names by creating a for loop which will be able to concatenate a set of consecutive numbers to the names of parts. To declare a dynamic name using double stars (**)
+                        </p>
+                        <div>
+                            //This loop labels the promoters from 1-10<br/>
+                            for (num i=0; i< 10; i++) {<br/>   
+                                Promoter ** "J2310"+i+"_AE" ** (.Name("J2310"+i+"_AE"));<br/>
+                            //This loop labels the promoters from 1-5<br/>
+                            num X = 5;<br/>
+                            Promoter ** "promoter"+X+"_AE ** (.Name(""promoter"+X+"_AE"));<br/>
+                        </div>
+                    </div>
+                    <hr/>

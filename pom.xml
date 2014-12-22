@@ -31,9 +31,11 @@
 				<version>2.5</version>
 				<configuration>
 					<warSourceDirectory>src/main/webapp</warSourceDirectory>
-					<failOnMissingWebXml>false</failOnMissingWebXml>
+			        <warName>EugeneLab</warName>
+					<failOnMissingWebXml>true</failOnMissingWebXml>
 					<attachClasses>true</attachClasses>
 				</configuration>
+				
 			</plugin>
 
       		<!-- plugin for executing the EugeneLab project in Eclipse -->

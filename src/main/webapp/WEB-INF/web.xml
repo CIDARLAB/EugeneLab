@@ -16,7 +16,7 @@
         </init-param>
         <init-param>
         	<param-name>USER_HOMES_DIRECTORY</param-name>
-        	<param-value>/Users/ernstl/PostDoc/BU/Eugene/ecosystem/EugeneLab_Home/home</param-value>
+        	<param-value>/home/EugeneLab/home</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>

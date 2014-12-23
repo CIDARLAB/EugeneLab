@@ -17,6 +17,7 @@
     	
     		<!-- Maven's Java Compiler -->
       		<plugin>
+      			<groupId>org.apache.maven.plugins</groupId>      		
         		<artifactId>maven-compiler-plugin</artifactId>
         		<version>3.1</version>
         		<configuration>
@@ -27,6 +28,7 @@
       
       		<!-- Packaging as war -->
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-war-plugin</artifactId>
 				<version>2.5</version>
 				<configuration>
@@ -134,33 +136,6 @@
 			<version>5.6.0.Final</version>
 		</dependency>
 
-		<!-- persistence
-		<dependency>
-			<groupId>javax.persistence</groupId>
-			<artifactId>persistence-api</artifactId>
-			<version>1.0.2</version>
-		</dependency -->
-
-		<!-- Link between persistence and DB  
-		<dependency>
-			<groupId>org.eclipse.persistence</groupId>
-			<artifactId>eclipselink</artifactId>
-			<version>2.5.0-RC1</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.eclipse.persistence</groupId>
-					<artifactId>commonj.sdo</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency	-->
-		
-		<!--  database 
-		<dependency>
-			<groupId>org.apache.derby</groupId>
-			<artifactId>derby</artifactId>
-			<version>10.11.1.1</version>
-		</dependency	-->
-		
 		<!--  junit -->
 		<dependency>
 			<groupId>junit</groupId>
@@ -180,7 +155,7 @@
 			<groupId>org.cidarlab</groupId>
 			<artifactId>WebAuthentication</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-			<type>war</type>
+			<!--  <type>war</type>-->
 			<!--  <classifier>classes</classifier -->
 		</dependency>
 		

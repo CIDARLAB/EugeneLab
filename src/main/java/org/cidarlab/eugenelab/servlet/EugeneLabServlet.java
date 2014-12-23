@@ -29,6 +29,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.cidarlab.eugene.dom.Component;
 import org.cidarlab.eugene.dom.imp.container.EugeneCollection;
 import org.cidarlab.eugene.exception.EugeneException;
+import org.cidarlab.web.AuthenticationConstants;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -50,7 +51,8 @@ public class EugeneLabServlet
 	private static String USER_HOMES_DIRECTORY;
 	private static String TMP_IMAGE_DIRECTORY;
 	
-	private static org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger("EugenLabServlet");
+	private static org.slf4j.Logger LOGGER = 
+			org.slf4j.LoggerFactory.getLogger("EugenLabServlet");
 	private static final int MAX_VISUAL_COMPONENTS = 10;
 	
 	/*
@@ -99,8 +101,7 @@ public class EugeneLabServlet
 		this.eugeneInstances = new HashMap<String, EugeneAdapter>();
 		
         /*
-         * initialize the Clotho connection
-         * WILL THIS COME SOON?
+         * initialize Clotho connection here!
          */
         //this.clotho = ClothoFactory.getAPI("ws://localhost:8080/websocket");
         
@@ -153,6 +154,19 @@ public class EugeneLabServlet
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+    	// we check if the request is coming from an authenticated user
+    	// i.e. a user who contacted the AuthenticationServlet first
+    	if(hasUserCookie(request)) {
+
+    		// if the request is coming from an authenticated user, 
+    		// then we set an authentication flag in the request and response
+    		// only if it is not set
+    		if(!isAuthenticated(request)) {
+    			authenticate(request, response);
+    		}
+    	}
+    	
+    	// then, we process the request
     	processGetRequest(request, response);
     }
 
@@ -175,7 +189,7 @@ public class EugeneLabServlet
         String command = request.getParameter("command");
 
         // retrieve the username from the session information
-        String username = this.getUsername(request.getCookies());
+        String username = this.getUsername(request);
         
         try {
             if ("getFileList".equalsIgnoreCase(command)) {
@@ -228,8 +242,52 @@ public class EugeneLabServlet
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
     		throws ServletException, IOException {
 
-    	processPostRequest(request, response);
+    	// we check if the request is coming from an authenticated user
+    	// i.e. a user who contacted the AuthenticationServlet first
+    	if(hasUserCookie(request)) {
+    		
+    		// if the request is coming from an authenticated user, 
+    		// then we set an authentication flag in the request and response
+    		// only if it is not set
+    		if(!isAuthenticated(request)) {
+    			authenticate(request, response);
+    		}
+    	}
+    	
+    	// then, we process the request
+		processPostRequest(request, response);
     }
+    
+    /**
+     * The isUserAuthenticated method evaluates if the current request 
+     * is coming from a user who is authenticated. Therefore it iterates 
+     * over all cookies of the request and checks if the USER cookie
+     * --- which is set by the AuthenticationServlet --- exists. 
+     * 
+     * @param request
+     * 
+     * @return ... true if the user is logged in
+     */
+    private boolean hasUserCookie(HttpServletRequest request) {
+
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (int i = 0; i < cookies.length; i++) {
+            	if(AuthenticationConstants.USER_COOKIE.equals(cookies[i].getName())) {
+            		return true;
+            	}
+            }
+        }
+        
+        return false;
+    }
+    
+    private void authenticate(HttpServletRequest request, HttpServletResponse response) {
+    	request.getSession().setAttribute(EugeneLabConstants.APPLICATION_NAME, EugeneLabConstants.AUTHENTICATED);
+    	
+    	response.addCookie(new Cookie(EugeneLabConstants.APPLICATION_NAME, EugeneLabConstants.AUTHENTICATED));
+    }
+    
 
     /**
      * Returns a short description of the servlet.
@@ -255,7 +313,7 @@ public class EugeneLabServlet
                 
 	        } else {
 	    		// retrieve the username from the session information
-	            String username = this.getUsername(request.getCookies());
+	            String username = this.getUsername(request);
 	            // get the command
 	        	String command = request.getParameter("command");
 
@@ -437,8 +495,7 @@ public class EugeneLabServlet
     		EugeneAdapter ea = this.getEugeneAdapter(username, session.getId());
     		
     		EugeneCollection components = ea.executeScript(script);
-    		
-//    		System.out.println("[EugeneLabServlet.executeEugene] -> " + components);
+
     		// visualize the outcome using SBOL visual compliant glyphs
     		// therefore, we use Pigeon
     		if(null != components && !components.getElements().isEmpty()) {
@@ -473,18 +530,31 @@ public class EugeneLabServlet
     // "Try it for free!" button
     private static final String DEFAULT_FREE_USER = "no_name_user";
     
-    private String getUsername(Cookie[] cookies) {
+    private String getUsername(HttpServletRequest request) {
     	
         String username = this.getDefaultUser();
-        if(null != cookies) {
-	    	for(Cookie c : cookies) {
-	    		if("user".equalsIgnoreCase(c.getName())) {
-	    			return c.getValue();
-	    		}
-	    	}
+        
+        // we first check if the user is authenticated
+        if(isAuthenticated(request)) {
+        	
+        	// if the user is authenticated, then we retrieve 
+        	// the username from the USER cookie
+	        if(null != request.getCookies()) {
+		    	for(Cookie c : request.getCookies()) {
+		    		if(AuthenticationConstants.USER_COOKIE.equalsIgnoreCase(c.getName())) {
+		    			return c.getValue();
+		    		}
+		    	}
+	        }
         }
 
+        // the user is not authenticated, i.e. DEFAULT USER
     	return username;
+    }
+    
+    private boolean isAuthenticated(HttpServletRequest request) {
+    	return EugeneLabConstants.AUTHENTICATED.equals(
+    			request.getSession().getAttribute(EugeneLabConstants.APPLICATION_NAME));
     }
     
     private String getDefaultUser() {
@@ -554,7 +624,7 @@ public class EugeneLabServlet
     	throws Exception {
     	
     	// get the current user
-        String username = this.getUsername(request.getCookies());
+        String username = this.getUsername(request);
     	
     	/*
     	 * we do the file upload using 

@@ -150,6 +150,11 @@ public class EugeneAdapter {
 			
     		this.baos.reset();
 
+    		// we also set Eugene's root directory
+			// to the current user's home directory
+			this.eugene.setRootDirectory(
+					this.getUserHomeDirectory());
+
     		return this.eugene.executeScript(script);
 		}
 		
@@ -208,7 +213,6 @@ public class EugeneAdapter {
 			}
 			
 			// do some file/directory management
-			// arghhh
 			String pictureName = col.getName() + ".png";
 			String imgFilename = IMAGE_DIRECTORY + "/" + pictureName;
 			

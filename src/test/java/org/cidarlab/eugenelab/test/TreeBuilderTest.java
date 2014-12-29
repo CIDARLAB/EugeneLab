@@ -1,7 +1,5 @@
 package org.cidarlab.eugenelab.test;
 
-import static org.junit.Assert.*;
-
 import org.cidarlab.eugenelab.servlet.TreeBuilder;
 import org.json.JSONArray;
 import org.junit.Test;
@@ -25,16 +23,6 @@ public class TreeBuilderTest {
 		TreeBuilder tb = new TreeBuilder();
 		
 		JSONArray testDir = tb.buildFileTree("./src/test/java/org/cidarlab/eugenelab/", true);
-		
-		assert(testDir != null);
-		assert(testDir.toString().contains("\"isFolder\":true"));
-	}
-
-	@Test
-	public void testTwoRecursions() {
-		TreeBuilder tb = new TreeBuilder();
-		
-		JSONArray testDir = tb.buildFileTree("./exports/", true);
 		
 		assert(testDir != null);
 		assert(testDir.toString().contains("\"isFolder\":true"));

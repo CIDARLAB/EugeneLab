@@ -196,7 +196,7 @@ public class EugeneLabServlet
             	
             	// we build a tree that contains all files (as nodes) 
             	// of the user's HOME directory.
-            	out.write(this.buildFileTree(username));
+            	out.write(this.buildFileTree(username, isAuthenticated(request)));
 
             } else if ("read".equalsIgnoreCase(command)) {
 
@@ -368,7 +368,7 @@ public class EugeneLabServlet
      * 
      * @throws EugeneException
      */
-    private String buildFileTree(String username) {
+    private String buildFileTree(String username, boolean isLoggedIn) {
     	
         String home = Paths.get(
         		//this.getServletContext().getRealPath(""), 
@@ -391,7 +391,7 @@ public class EugeneLabServlet
 			this.treeBuilder = new TreeBuilder();
 		}
 
-		JSONArray jArray = this.treeBuilder.buildFileTree(home);
+		JSONArray jArray = this.treeBuilder.buildFileTree(home, isLoggedIn);
 		if(null != jArray) {
 			return jArray.toString();
 		} 

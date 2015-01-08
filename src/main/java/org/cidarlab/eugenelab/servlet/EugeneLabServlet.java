@@ -49,7 +49,7 @@ public class EugeneLabServlet
 	private TreeBuilder treeBuilder;
 	
 	private static String USER_HOMES_DIRECTORY;
-	private static String TMP_IMAGE_DIRECTORY;
+	public static String TMP_DIRECTORY;
 	
 	private static org.slf4j.Logger LOGGER = 
 			org.slf4j.LoggerFactory.getLogger("EugenLabServlet");
@@ -80,19 +80,19 @@ public class EugeneLabServlet
          * in this directory we store all generated SBOL and Pigeon 
          * images (for the time being (and maybe until the end of the computer area, i.e. forever))
          */
-        TMP_IMAGE_DIRECTORY = config.getInitParameter("TMP_IMAGE_DIRECTORY");
-		File tmp = new File(TMP_IMAGE_DIRECTORY);
+        TMP_DIRECTORY = config.getInitParameter("TMP_DIRECTORY");
+		File tmp = new File(
+					this.getServletContext().getRealPath("") + "/" +
+					TMP_DIRECTORY);
 		if(!tmp.exists()) {
-			tmp.mkdir();
 			tmp.mkdirs();
 		}
 
 		// USER_HOMES directory
         USER_HOMES_DIRECTORY = config.getInitParameter("USER_HOMES_DIRECTORY");
-		File uh = new File(USER_HOMES_DIRECTORY);
-		if(!uh.exists()) {
-			uh.mkdir();
-			uh.mkdirs();
+		File home = new File(USER_HOMES_DIRECTORY);
+		if(!home.exists()) {
+			home.mkdirs();
 		}
 
 		/*
@@ -127,7 +127,7 @@ public class EugeneLabServlet
 	public String getTmpImageDirectory() {
 		return Paths.get(
 				this.getServletContext().getRealPath(""),
-				TMP_IMAGE_DIRECTORY).toString();
+				TMP_DIRECTORY).toString();
 	}
 	
     @Override
@@ -343,6 +343,9 @@ public class EugeneLabServlet
     	} catch(Exception e) {
     		jsonResponse.put("status", "exception");
     		jsonResponse.put("result", e.toString());
+    		
+    		e.printStackTrace();
+    		LOGGER.warn(e.toString());
     	}
 
         /*
@@ -466,7 +469,8 @@ public class EugeneLabServlet
     	ea = new EugeneAdapter(username, 
     			sessionId, 
     			this.getUserHomesDirectory(), 
-    			this.getTmpImageDirectory());
+    			this.getServletContext().getRealPath(""));
+    	
     	// store it in the eugeneInstances hash map
     	this.eugeneInstances.put(username, ea);
     	// and return it
@@ -515,6 +519,7 @@ public class EugeneLabServlet
     		jsonResponse.put("eugene-output", ea.getEugeneOutput());
 
     	} catch(Exception e) {
+    		e.printStackTrace();
     		throw new EugeneException(e.toString());
     	}
     	

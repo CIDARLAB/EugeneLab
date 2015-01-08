@@ -44,7 +44,7 @@ public class EugeneAdapter {
 	private String user;
 	
 	private String HOME_DIRECTORY;
-	private String IMAGE_DIRECTORY;
+	private String CONTEXT_PATH;
 	
 	private Eugene eugene;
 	private Pigeonizer pigeon;
@@ -59,14 +59,14 @@ public class EugeneAdapter {
 	
 	
 	public EugeneAdapter(String user, String sessionId,
-			String HOME_DIRECTORY, String IMAGE_DIRECTORY) 
+			String HOME_DIRECTORY, String CONTEXT_PATH) 
 			throws EugeneException {
 		
 		this.user = user;
 		this.sessionID = sessionId;
 		
 		this.HOME_DIRECTORY = HOME_DIRECTORY;
-		this.IMAGE_DIRECTORY = IMAGE_DIRECTORY;
+		this.CONTEXT_PATH = CONTEXT_PATH;
 		
         /*
          * initialize Pigeon
@@ -214,7 +214,9 @@ public class EugeneAdapter {
 			
 			// do some file/directory management
 			String pictureName = col.getName() + ".png";
-			String imgFilename = IMAGE_DIRECTORY + "/" + pictureName;
+			String imgFilename = this.CONTEXT_PATH + "/" + 
+					EugeneLabServlet.TMP_DIRECTORY + "/" + 
+					pictureName;
 			
 			// merge all images (created above) 
 			// into a single big image
@@ -226,9 +228,7 @@ public class EugeneAdapter {
 			// if everything went fine so far, 
 			// then we return the relative URL of
 			// the resulting image
-			return URI.create("/tmp/" + pictureName);
-				// how can we get rid of the tmp w/o
-				// sophisticated string operations?
+			return URI.create(EugeneLabServlet.TMP_DIRECTORY + "/" + pictureName);
     	} catch(Exception ee) {
     		// something went wrong, i.e.
     		// throw an exception
@@ -244,7 +244,9 @@ public class EugeneAdapter {
     		throws EugeneException {
     	
 		String sbolFilename = col.getName() + ".sbol";
-		String sbolPath = IMAGE_DIRECTORY + "/" + sbolFilename;
+		String sbolPath = CONTEXT_PATH + "/" + 
+				EugeneLabServlet.TMP_DIRECTORY + "/" + 
+				sbolFilename;
 
 		try {
 			// convert the EugeneCollection into an in-memory
@@ -262,7 +264,7 @@ public class EugeneAdapter {
 			throw new EugeneException(ee.getLocalizedMessage());
 		}
 		
-    	return "Download the SBOL file <a href=\"/EugeneLab/tmp/"+sbolFilename+"\">here</a>";    	
+    	return "Download the SBOL file <a href=\""+EugeneLabServlet.TMP_DIRECTORY+"/"+sbolFilename+"\">here</a>";    	
     }
     
     /**

@@ -10,13 +10,17 @@
         <servlet-name>EugeneLabServlet</servlet-name>
         <servlet-class>org.cidarlab.eugenelab.servlet.EugeneLabServlet</servlet-class>
         <init-param>
-        	<param-name>TMP_IMAGE_DIRECTORY</param-name>
+        	<!-- EugeneLab stores all generated Pigeon images and SBOL files 
+        	     in the TMP directory. The TMP directory is a directory within 
+        	     the web container, enabling to display and download the 
+        	     generated Pigeon images and SBOL files. -->
+        	<param-name>TMP_DIRECTORY</param-name>
         	<param-value>tmp</param-value>
         </init-param>
         <init-param>
         	<param-name>USER_HOMES_DIRECTORY</param-name>
-        	<!-- param-value>/Users/ernstl/PostDoc/BU/Eugene/ecosystem/EugeneLab_Home/home</param-value -->
-        	<param-value>/home/EugeneLab/home</param-value>
+        	<param-value>/Users/ernstl/PostDoc/BU/Eugene/ecosystem/EugeneLab_Home/home</param-value>
+        	<!--  param-value>/home/EugeneLab/home</param-value -->
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>

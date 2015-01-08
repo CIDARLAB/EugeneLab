@@ -692,7 +692,7 @@ $(document).ready(function() {
                         images = images + '</div><a class="carousel-control left" href="#outputCarousel" data-slide="prev">&lsaquo;</a> <a class="carousel-control right" href="#outputCarousel" data-slide="next">&rsaquo;</a></div>';
                         var slideShow = imageHeader + images;
                         
-                        $('#outputImageArea').html('<img src=".' + response["pigeon-uri"] + '"/>');
+                        $('#outputImageArea').html('<img src="' + response["pigeon-uri"] + '"/>');
 
                         /***
                         var toAppend = '<table class="table table-bordered table-hover" id="outputList"><thead><tr><th>Name</th><th>Type</th><th></th></tr></thead><tbody>';

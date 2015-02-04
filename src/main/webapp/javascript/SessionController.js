@@ -91,7 +91,9 @@ $(document).ready(function() {
 		deleteCookie("user");
 	}
 	
-	if (getCookie("eugenelab") === "authenticated") {
+	if (getCookie("eugenelab") === "authenticated" && 
+			getCookie("user") !== "") { // for Safari Browser
+		
 		$('#loginArea').html('<div id="loginArea" class="navbar-form pull-right">'+
 						'You are logged in as <strong>' + getCookie("user") + '</strong>&nbsp;&nbsp;&nbsp;&nbsp;'+
 						'<button id="btnLogout" class="btn btn-primary btn-warning">Logout</button>');

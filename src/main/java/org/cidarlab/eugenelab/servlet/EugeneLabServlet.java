@@ -28,6 +28,7 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.cidarlab.eugene.dom.Component;
 import org.cidarlab.eugene.dom.imp.container.EugeneCollection;
+import org.cidarlab.eugene.dom.imp.container.EugeneReturnCollection;
 import org.cidarlab.eugene.exception.EugeneException;
 import org.cidarlab.web.AuthenticationConstants;
 import org.json.JSONArray;
@@ -244,18 +245,18 @@ public class EugeneLabServlet
 
     	// we check if the request is coming from an authenticated user
     	// i.e. a user who contacted the AuthenticationServlet first
-    	if(hasUserCookie(request)) {
+    	if(this.hasUserCookie(request)) {
     		
     		// if the request is coming from an authenticated user, 
     		// then we set an authentication flag in the request and response
     		// only if it is not set
-    		if(!isAuthenticated(request)) {
-    			authenticate(request, response);
+    		if(!this.isAuthenticated(request)) {
+    			this.authenticate(request, response);
     		}
     	}
     	
     	// then, we process the request
-		processPostRequest(request, response);
+		this.processPostRequest(request, response);
     }
     
     /**
@@ -274,7 +275,11 @@ public class EugeneLabServlet
         if (cookies != null) {
             for (int i = 0; i < cookies.length; i++) {
             	if(AuthenticationConstants.USER_COOKIE.equals(cookies[i].getName())) {
-            		return true;
+            		
+            		// check if the value is non-empty
+            		if(null != cookies[i].getValue() && !cookies[i].getValue().isEmpty()) {
+            			return true;
+            		}
             	}
             }
         }
@@ -283,9 +288,11 @@ public class EugeneLabServlet
     }
     
     private void authenticate(HttpServletRequest request, HttpServletResponse response) {
-    	request.getSession().setAttribute(EugeneLabConstants.APPLICATION_NAME, EugeneLabConstants.AUTHENTICATED);
+    	request.getSession().setAttribute(
+    			EugeneLabConstants.APPLICATION_NAME, EugeneLabConstants.AUTHENTICATED);
     	
-    	response.addCookie(new Cookie(EugeneLabConstants.APPLICATION_NAME, EugeneLabConstants.AUTHENTICATED));
+    	response.addCookie(
+    			new Cookie(EugeneLabConstants.APPLICATION_NAME, EugeneLabConstants.AUTHENTICATED));
     }
     
 
@@ -498,22 +505,24 @@ public class EugeneLabServlet
     	try {
     		EugeneAdapter ea = this.getEugeneAdapter(username, session.getId());
     		
-    		EugeneCollection components = ea.executeScript(script);
+    		EugeneCollection eugeneReturn = ea.executeScript(script);
 
     		// visualize the outcome using SBOL visual compliant glyphs
     		// therefore, we use Pigeon
-    		if(null != components && !components.getElements().isEmpty()) {
+    		if(null != eugeneReturn && !eugeneReturn.getElements().isEmpty()) {
     			
 	    		/*
 	    		 * pigeonize the collection and 
 	    		 * return the URI of the generated pigeon image
 	    		 */
-    			jsonResponse.put("pigeon-uri", ea.pigeonize(components, MAX_VISUAL_COMPONENTS));
+    			
+    			System.out.println(((EugeneReturnCollection)eugeneReturn).getImages());
+    			jsonResponse.put("pigeon-uri", ea.pigeonize(eugeneReturn, MAX_VISUAL_COMPONENTS));
     			
     			/*
     			 * SBOL XML/RDF serialization
     			 */
-    			jsonResponse.put("sbol-xml-rdf", ea.SBOLize(components));
+    			jsonResponse.put("sbol-xml-rdf", ea.SBOLize(eugeneReturn));
     		}
     		
     		jsonResponse.put("eugene-output", ea.getEugeneOutput());
@@ -530,17 +539,12 @@ public class EugeneLabServlet
      * SESSION MANAGEMENT 
      *-----------------------------*/
 
-    // the DEFAULT_FREE_USER denotes the username 
-    // if the current EugeneLab client hits the 
-    // "Try it for free!" button
-    private static final String DEFAULT_FREE_USER = "no_name_user";
-    
     private String getUsername(HttpServletRequest request) {
     	
         String username = this.getDefaultUser();
         
         // we first check if the user is authenticated
-        if(isAuthenticated(request)) {
+        if(this.isAuthenticated(request)) {
         	
         	// if the user is authenticated, then we retrieve 
         	// the username from the USER cookie
@@ -562,6 +566,10 @@ public class EugeneLabServlet
     			request.getSession().getAttribute(EugeneLabConstants.APPLICATION_NAME));
     }
     
+    // the DEFAULT_FREE_USER denotes the username 
+    // if the current EugeneLab client hits the 
+    // "Try it for free!" button
+    private static final String DEFAULT_FREE_USER = "no_name_user";    
     private String getDefaultUser() {
         return DEFAULT_FREE_USER;
     }

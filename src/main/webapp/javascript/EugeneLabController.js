@@ -647,7 +647,8 @@ $(document).ready(function() {
                 /*
                  * a server-side exception occurred 
                  */
-                if ("exception" === response["status"]) {                	
+                if ("exception" === response["status"]) {   
+                	
                 	// print the exception
             		$('#console').addClass("active");
                 	$("#outputConsoleArea").attr("class", "alert alert-danger");
@@ -670,29 +671,55 @@ $(document).ready(function() {
                 	/*---------------------------
                      * PIGEON - #outputImageArea
                      *---------------------------*/ 
+
                 	if (response["pigeon-uri"] === undefined) {
                 	
                 		$('#outputImageArea').html('');
                 	
                 	} else {
-
+                		
+                		var pigeonLinks = [];
                         var imageHeader = '<div id="outputCarousel" class="slide carousel"><ol class="carousel-indicators">';
                         var images = '<div class="carousel-inner">';
                         var imageCount = 0;
-                        
-                        var active = "";
-                        if (imageCount === 0) {
-                            active = "active";
-                        }
-                        imageHeader = imageHeader + '<li class="' + active + '" data-target="#outputCarousel" +data-slide-to="' + imageCount + '"></li>';
-                        images = images + '<div class="item ' + active + '"><img src="' + response["pigeon-uri"] + '"/><div class="carousel-caption"><h4>' + this["name"] + '</h4></div></div>';
-                        imageCount++;
 
+                        $.each(response["pigeon-uri"], function() {
+                            //pigeonLinks.push(this["pigeon-uri"]);
+                            
+                            var elementName = this["element"];
+                            var elementImages = this["images"];
+                            
+                            var active = "";
+                            if (imageCount === 0) {
+                                active = "active";
+                            }
+                            
+                            imageHeader = imageHeader + 
+                            	'<li class="' + active + '" data-target="#outputCarousel" +data-slide-to="' + imageCount + '"></li>';
+
+                            
+                            $.each(this["images"], function(idx, uri) {
+
+	                            images = images + 
+	                            	'<div class="item ' + active + '">' +
+	                            		'<img src="' + uri + '"/>' +
+	                            		'<div class="carousel-caption">' +
+	                            			'<h4>' + elementName + '</h4>' +
+	                            		'</div>' +
+	                            	'</div>';
+	                            
+	                            imageCount++;
+                            });                            
+                        });
+                        
+                        //render images
                         imageHeader = imageHeader + '</ol>';
                         images = images + '</div><a class="carousel-control left" href="#outputCarousel" data-slide="prev">&lsaquo;</a> <a class="carousel-control right" href="#outputCarousel" data-slide="next">&rsaquo;</a></div>';
                         var slideShow = imageHeader + images;
+                        $('#outputImageArea').html(slideShow);
+                        $('#outputCarousel').carousel({interval: 5000});
                         
-                        $('#outputImageArea').html('<img src="' + response["pigeon-uri"] + '"/>');
+                        //$('#outputImageArea').html('<img src="' + response["pigeon-uri"] + '"/>');
 
                         /***
                         var toAppend = '<table class="table table-bordered table-hover" id="outputList"><thead><tr><th>Name</th><th>Type</th><th></th></tr></thead><tbody>';

@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -34,6 +35,9 @@ import org.cidarlab.web.AuthenticationConstants;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.nio.file.Path;
+
+import static java.nio.file.StandardCopyOption.*;
 /**
  * The EugeneLabServlet represents the Back-End of the EugeneLab Web Application.
  * It processes HTTP GET and POST requests. The data exchange is based on JSON 
@@ -514,10 +518,13 @@ public class EugeneLabServlet
 	    		/*
 	    		 * pigeonize the collection and 
 	    		 * return the URI of the generated pigeon image
-	    		 */
+	    		 */    	
     			
-    			System.out.println(((EugeneReturnCollection)eugeneReturn).getImages());
-    			jsonResponse.put("pigeon-uri", ea.pigeonize(eugeneReturn, MAX_VISUAL_COMPONENTS));
+//    			String USER_TMP_IMAGE_DIRECTORY = "tmp/" + username + "/" + session.getId() + "/";
+    			jsonResponse.put("pigeon-uri", 
+    					this.jsonizePigeonURIs(
+    							((EugeneReturnCollection)eugeneReturn).getImages(),
+    							"./" + TMP_DIRECTORY));
     			
     			/*
     			 * SBOL XML/RDF serialization
@@ -533,6 +540,81 @@ public class EugeneLabServlet
     	}
     	
     	return jsonResponse;
+    }
+    
+    private JSONArray jsonizePigeonURIs(Map<String, Collection<URI>> visualizedImages, 
+    		String imageDirectory) {
+    	
+//    	System.out.println("visualizedImages --> " + visualizedImages);
+    	
+		JSONArray imagesArray = null;    			
+		if(null != visualizedImages && !visualizedImages.isEmpty()) {
+			
+			imagesArray = new JSONArray();
+			
+			for(String elementName : visualizedImages.keySet()) {
+			
+				// every visualized element is a JSONObject
+				// whose key is the name of the element and 
+				// whose value is an array of URIs point to 
+				// the images
+				JSONObject elementsImages = new JSONObject();
+				
+				// value
+				JSONArray urisArray = new JSONArray();
+				for(URI uri : visualizedImages.get(elementName)) {
+
+					/*
+					 * cut the image file name out of the URI 
+					 */
+					String image = 
+							this.copyImageToWebContainer(uri.toString());
+					
+					if(null != image) {
+						urisArray.put(image);
+
+					}
+				}	    
+				
+				// key-value
+				elementsImages.put("element", elementName);
+				elementsImages.put("images", urisArray);
+				
+				
+				// store the key-value in the JSONObject
+				// that's being returned to the front-end
+				imagesArray.put(elementsImages);
+			}
+		}
+		
+		return imagesArray;
+    }
+    
+    private String copyImageToWebContainer(String from) {
+
+		int idx = -1;
+		if(-1 != (idx = from.lastIndexOf('/'))) {
+			
+			String imageName = from.substring(idx + 1);
+				
+	    	// store the image in the user's tmp directory
+			// within the web container
+			Path sourceImage = Paths.get(from);
+			Path targetImage = Paths.get(
+					this.getTmpImageDirectory() + "/" + imageName);
+			
+			try {
+				Files.copy(sourceImage, targetImage, REPLACE_EXISTING);
+			} catch(Exception e) {
+				// TODO:
+			}
+			
+			return TMP_DIRECTORY + "/" + imageName;
+		}
+		
+		return null;
+		
+		
     }
     
     /*------------------------------

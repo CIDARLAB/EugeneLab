@@ -640,9 +640,10 @@ $(document).ready(function() {
             	$('#btnRun').removeAttr("disabled");
 
             	// clear the output message box
-                $('#outputConsoleArea').html('');
-        		$('#outputImageArea').html('');
-        		$('#outputTextualArea').html('');
+        		$('#console').addClass("active");
+                $('#outputConsoleArea').html("");
+        		$('#outputImageArea').html("");
+        		$('#outputTextualArea').html("");
 
                 /*
                  * a server-side exception occurred 

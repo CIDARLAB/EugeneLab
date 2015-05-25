@@ -510,7 +510,7 @@ public class EugeneLabServlet
     		EugeneAdapter ea = this.getEugeneAdapter(username, session.getId());
     		
     		EugeneCollection eugeneReturn = ea.executeScript(script);
-
+    		
     		// visualize the outcome using SBOL visual compliant glyphs
     		// therefore, we use Pigeon
     		if(null != eugeneReturn && !eugeneReturn.getElements().isEmpty()) {
@@ -535,8 +535,7 @@ public class EugeneLabServlet
     		jsonResponse.put("eugene-output", ea.getEugeneOutput());
 
     	} catch(Exception e) {
-    		e.printStackTrace();
-    		throw new EugeneException(e.toString());
+    		throw new EugeneException(e.getLocalizedMessage());
     	}
     	
     	return jsonResponse;

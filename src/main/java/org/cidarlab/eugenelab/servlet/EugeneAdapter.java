@@ -258,9 +258,6 @@ public class EugeneAdapter {
 	    	this.serializeSBOL(doc, sbolPath);
 	    	
 		} catch(EugeneException ee) {
-			
-			ee.printStackTrace();
-			
 			throw new EugeneException(ee.getLocalizedMessage());
 		}
 		

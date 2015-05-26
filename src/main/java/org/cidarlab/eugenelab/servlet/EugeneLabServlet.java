@@ -535,6 +535,7 @@ public class EugeneLabServlet
     		jsonResponse.put("eugene-output", ea.getEugeneOutput());
 
     	} catch(Exception e) {
+//    		e.printStackTrace();
     		throw new EugeneException(e.getLocalizedMessage());
     	}
     	

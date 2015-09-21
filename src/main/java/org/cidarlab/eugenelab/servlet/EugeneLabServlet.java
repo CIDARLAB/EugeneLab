@@ -58,7 +58,7 @@ public class EugeneLabServlet
 	
 	private static org.slf4j.Logger LOGGER = 
 			org.slf4j.LoggerFactory.getLogger("EugenLabServlet");
-	private static final int MAX_VISUAL_COMPONENTS = 10;
+//	private static final int MAX_VISUAL_COMPONENTS = 10;
 	
 	/*
 	 * In the EugeneLabServlet, every sessions gets an instance
@@ -355,7 +355,7 @@ public class EugeneLabServlet
     		jsonResponse.put("status", "exception");
     		jsonResponse.put("result", e.toString());
     		
-    		e.printStackTrace();
+//    		e.printStackTrace();
     		LOGGER.warn(e.toString());
     	}
 
@@ -535,7 +535,7 @@ public class EugeneLabServlet
     		jsonResponse.put("eugene-output", ea.getEugeneOutput());
 
     	} catch(Exception e) {
-//    		e.printStackTrace();
+    		e.printStackTrace();
     		throw new EugeneException(e.getLocalizedMessage());
     	}
     	
